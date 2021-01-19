@@ -1,0 +1,14 @@
+matching\AbstractEvent$1.class
+matching\AbstractEvent.class
+matching\MatchRequested.class
+matching\config\kafka\KafkaProcessor.class
+matching\external\Payment.class
+matching\external\PaymentService.class
+matching\VisitAssigned.class
+matching\MatchCanceled.class
+matching\PolicyHandler.class
+matching\Match.class
+matching\VisitCanceled.class
+matching\MatchApplication.class
+matching\MatchController.class
+matching\MatchRepository.class
