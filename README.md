@@ -18,6 +18,7 @@
     - [폴리글랏 프로그래밍](#폴리글랏-프로그래밍)
     - [동기식 호출 과 Fallback 처리](#동기식-호출-과-Fallback-처리)
     - [비동기식 호출 과 Eventual Consistency](#비동기식-호출-과-Eventual-Consistency)
+    - [CQRS](#CQRS)
   - [운영](#운영)
     - [CI/CD 설정](#cicd설정)
     - [동기식 호출 / 서킷 브레이킹 / 장애격리](#동기식-호출-서킷-브레이킹-장애격리)
@@ -112,6 +113,7 @@
 
 ## Event Storming 결과
 * MSAEz 로 모델링한 이벤트스토밍 결과:  http://www.msaez.io/#/storming/oXrpW7GBVxVEQ4xDYSfbyK6tNEo1/every/1fcbffb626305265cb4134a6bd8f5216
+![image](https://user-images.githubusercontent.com/75401933/105022842-8e58b980-5a8d-11eb-868c-aae24f8db3ed.png)
 
 
 
@@ -464,6 +466,11 @@ mvn spring-boot:run
 #주문상태 확인
 http localhost:8080/orders     # 모든 주문의 상태가 "배송됨"으로 확인
 ```
+
+
+## CQRS
+
+매칭요청된 현황을 view로 구현하였다. 
 
 
 # 운영
