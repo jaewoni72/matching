@@ -22,7 +22,7 @@
     - [CI/CD 설정](#cicd설정)
     - [오토스케일 아웃](#오토스케일-아웃)
     - [Persistence Volume](#Persistence-Volume)
-    - [Self-healing (liveness probe)](#Self--healing-(liveness-probe))
+    - [Self_healing (liveness probe)](#Self_healing-(liveness-probe))
     - [동기식 호출 / 서킷 브레이킹 / 장애격리 - 수정필요](#동기식-호출-서킷-브레이킹-장애격리)
     - [무정지 재배포](#무정지-재배포)
 
@@ -332,9 +332,9 @@ mvn spring-boot:run
 http localhost:8088/matches id=5006 price=50000 status=matchRequest  #Success
 ```
 ![11 payment올리면match됨](https://user-images.githubusercontent.com/45473909/105013494-a8d96580-5a82-11eb-95de-73a47f072920.PNG)
-```
+
 - 또한 과도한 요청시에 서비스 장애가 도미노 처럼 벌어질 수 있다. (서킷브레이커, 폴백 처리는 운영단계에서 설명한다.)
-```
+
 
 ## 이벤트드리븐 아키텍쳐의 구현
 
@@ -693,7 +693,7 @@ mypage 구현체에서 해당 pvc를 volumeMount 하여 사용 (kubectl get depl
 <img width="482" alt="03 mount_설정확인" src="https://user-images.githubusercontent.com/66051393/105042971-41361100-5aa8-11eb-8fa7-65efbe12fb8c.png">
 
 
-## Self-healing (liveness probe)
+## Self_healing (liveness probe)
 mypage구현체의 deployment.yaml 소스 서비스포트를 8080이 아닌 고의로 8081로 변경하여 재배포한 후 pod 상태 확인
 
 • 정상 서비스포트 확인
