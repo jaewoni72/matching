@@ -8,7 +8,7 @@
 
 # Table of contents
 
-- [예제 - ](#---)
+- [예제 ](#---)
   - [서비스 시나리오](#서비스-시나리오)
   - [체크포인트](#체크포인트)
   - [분석/설계](#분석설계)
@@ -114,47 +114,6 @@
 ## Event Storming 결과
 * MSAEz 로 모델링한 이벤트스토밍 결과:  http://www.msaez.io/#/storming/oXrpW7GBVxVEQ4xDYSfbyK6tNEo1/every/1fcbffb626305265cb4134a6bd8f5216
 ![image](https://user-images.githubusercontent.com/75401933/105022842-8e58b980-5a8d-11eb-868c-aae24f8db3ed.png)
-
-
-
-### 완성된 1차 모형 (적용)
-
-![image](https://user-images.githubusercontent.com/75401933/100964027-11b85d00-356b-11eb-97b0-abd00e78c2c6.png)
-
-    - View Model 추가
-
-### 1차 완성본에 대한 기능적/비기능적 요구사항을 커버하는지 검증
-
-![image](https://user-images.githubusercontent.com/487999/79684167-3ecd2f00-826a-11ea-806a-957362d197e3.png)
-
-    - 고객이 메뉴를 선택하여 주문한다 (ok)
-    - 고객이 결제한다 (ok)
-    - 주문이 되면 주문 내역이 입점상점주인에게 전달된다 (ok)
-    - 상점주인이 확인하여 요리해서 배달 출발한다 (ok)
-
-![image](https://user-images.githubusercontent.com/487999/79684170-47256a00-826a-11ea-9777-e16fafff519a.png)
-    - 고객이 주문을 취소할 수 있다 (ok)
-    - 주문이 취소되면 배달이 취소된다 (ok)
-    - 고객이 주문상태를 중간중간 조회한다 (View-green sticker 의 추가로 ok) 
-    - 주문상태가 바뀔 때 마다 카톡으로 알림을 보낸다 (?)
-
-
-### 모델 수정
-
-![image](https://user-images.githubusercontent.com/487999/79684176-4e4c7800-826a-11ea-8deb-b7b053e5d7c6.png)
-    
-    - 수정된 모델은 모든 요구사항을 커버함.
-
-### 비기능 요구사항에 대한 검증
-
-![image](https://user-images.githubusercontent.com/487999/79684184-5c9a9400-826a-11ea-8d87-2ed1e44f4562.png)
-
-    - 마이크로 서비스를 넘나드는 시나리오에 대한 트랜잭션 처리
-        - 고객 주문시 결제처리:  결제가 완료되지 않은 주문은 절대 받지 않는다는 경영자의 오랜 신념(?) 에 따라, ACID 트랜잭션 적용. 주문와료시 결제처리에 대해서는 Request-Response 방식 처리
-        - 결제 완료시 점주연결 및 배송처리:  App(front) 에서 Store 마이크로서비스로 주문요청이 전달되는 과정에 있어서 Store 마이크로 서비스가 별도의 배포주기를 가지기 때문에 Eventual Consistency 방식으로 트랜잭션 처리함.
-        - 나머지 모든 inter-microservice 트랜잭션: 주문상태, 배달상태 등 모든 이벤트에 대해 카톡을 처리하는 등, 데이터 일관성의 시점이 크리티컬하지 않은 모든 경우가 대부분이라 판단, Eventual Consistency 를 기본으로 채택함.
-
-
 
 
 ## 헥사고날 아키텍처 다이어그램 도출
@@ -475,84 +434,83 @@ http localhost:8080/orders     # 모든 주문의 상태가 "배송됨"으로 �
 ```
 # mypage > PolicyHandler.java
 
+@StreamListener(KafkaProcessor.INPUT)
+public void wheneverVisitCanceled_(@Payload VisitCanceled visitCanceled){
 
-    @StreamListener(KafkaProcessor.INPUT)
-    public void wheneverVisitCanceled_(@Payload VisitCanceled visitCanceled){
+    if(visitCanceled.isMe()){
+        System.out.println("##### listener  : " + visitCanceled.toJson());
 
-        if(visitCanceled.isMe()){
-            System.out.println("##### listener  : " + visitCanceled.toJson());
-
-//            MyPage mypage = new MyPage();
-            MyPageRepository.findById(visitCanceled.getMatchId()).ifPresent(MyPage ->{
-                System.out.println("##### wheneverVisitCanceled_MyPageRepository.findById : exist" );
-                MyPage.setStatus(visitCanceled.getEventType());
-                MyPageRepository.save(MyPage);
-            });
-        }
+        MyPageRepository.findById(visitCanceled.getMatchId()).ifPresent(MyPage ->{
+            System.out.println("##### wheneverVisitCanceled_MyPageRepository.findById : exist" );
+            MyPage.setStatus(visitCanceled.getEventType());
+            MyPageRepository.save(MyPage);
+        });
     }
-    @StreamListener(KafkaProcessor.INPUT)
-    public void wheneverVisitAssigned_(@Payload VisitAssigned visitAssigned){
+}
+@StreamListener(KafkaProcessor.INPUT)
+public void wheneverVisitAssigned_(@Payload VisitAssigned visitAssigned){
 
-        if(visitAssigned.isMe()){
-            System.out.println("##### listener wheneverVisitAssigned  : " + visitAssigned.toJson());
+    if(visitAssigned.isMe()){
+        System.out.println("##### listener wheneverVisitAssigned  : " + visitAssigned.toJson());
 
-            MyPageRepository.findById(visitAssigned.getMatchId()).ifPresent(MyPage ->{
-                System.out.println("##### wheneverVisitAssigned_MyPageRepository.findById : exist" );
+        MyPageRepository.findById(visitAssigned.getMatchId()).ifPresent(MyPage ->{
+            System.out.println("##### wheneverVisitAssigned_MyPageRepository.findById : exist" );
 
-                MyPage.setStatus(visitAssigned.getEventType()); //상태값은 모두 이벤트타입으로 셋팅함
-                MyPage.setTeacher(visitAssigned.getTeacher());
-                MyPage.setVisitDate(visitAssigned.getVisitDate());
-                MyPageRepository.save(MyPage);
-            });
+            MyPage.setStatus(visitAssigned.getEventType()); //상태값은 모두 이벤트타입으로 셋팅함
+            MyPage.setTeacher(visitAssigned.getTeacher());
+            MyPage.setVisitDate(visitAssigned.getVisitDate());
+            MyPageRepository.save(MyPage);
+        });
 
-        }
     }
-    @StreamListener(KafkaProcessor.INPUT)
-    public void wheneverPaymentApproved_(@Payload PaymentApproved paymentApproved){
+}
+@StreamListener(KafkaProcessor.INPUT)
+public void wheneverPaymentApproved_(@Payload PaymentApproved paymentApproved){
 
-        if(paymentApproved.isMe()){
-            System.out.println("##### listener  : " + paymentApproved.toJson());
+    if(paymentApproved.isMe()){
+        System.out.println("##### listener  : " + paymentApproved.toJson());
 
-            MyPage mypage = new MyPage();
-            mypage.setId(paymentApproved.getMatchId());
-            mypage.setPrice(paymentApproved.getPrice());
-            mypage.setStatus(paymentApproved.getEventType());
-            MyPageRepository.save(mypage);
-        }
+        MyPage mypage = new MyPage();
+        mypage.setId(paymentApproved.getMatchId());
+        mypage.setPrice(paymentApproved.getPrice());
+        mypage.setStatus(paymentApproved.getEventType());
+        MyPageRepository.save(mypage);
     }
-    @StreamListener(KafkaProcessor.INPUT)
-    public void wheneverPaymentCanceled_(@Payload PaymentCanceled paymentCanceled){
+}
+@StreamListener(KafkaProcessor.INPUT)
+public void wheneverPaymentCanceled_(@Payload PaymentCanceled paymentCanceled){
 
-        if(paymentCanceled.isMe()){
-            System.out.println("##### listener  : " + paymentCanceled.toJson());
+    if(paymentCanceled.isMe()){
+        System.out.println("##### listener  : " + paymentCanceled.toJson());
 
 
-            MyPageRepository.findById(paymentCanceled.getMatchId()).ifPresent(MyPage ->{
-                System.out.println("##### wheneverPaymentCanceled_MyPageRepository.findById : exist" );
+        MyPageRepository.findById(paymentCanceled.getMatchId()).ifPresent(MyPage ->{
+            System.out.println("##### wheneverPaymentCanceled_MyPageRepository.findById : exist" );
 
-                MyPage.setStatus(paymentCanceled.getEventType()); //상태값은 모두 이벤트타입으로 셋팅함
-                MyPageRepository.save(MyPage);
-            });
-        }
+            MyPage.setStatus(paymentCanceled.getEventType()); //상태값은 모두 이벤트타입으로 셋팅함
+            MyPageRepository.save(MyPage);
+        });
     }
-    @StreamListener(KafkaProcessor.INPUT)
-    public void wheneverMatchCanceled_(@Payload MatchCanceled matchCanceled){
+}
+@StreamListener(KafkaProcessor.INPUT)
+public void wheneverMatchCanceled_(@Payload MatchCanceled matchCanceled){
 
-        if(matchCanceled.isMe()){
-            System.out.println("##### listener  : " + matchCanceled.toJson());
+    if(matchCanceled.isMe()){
+        System.out.println("##### listener  : " + matchCanceled.toJson());
 
-            MyPageRepository.findById(matchCanceled.getId()).ifPresent(MyPage ->{
-                System.out.println("##### wheneverMatchCanceled_MyPageRepository.findById : exist" );
+        MyPageRepository.findById(matchCanceled.getId()).ifPresent(MyPage ->{
+            System.out.println("##### wheneverMatchCanceled_MyPageRepository.findById : exist" );
 
-                MyPage.setStatus(matchCanceled.getEventType()); //상태값은 모두 이벤트타입으로 셋팅함
-                MyPageRepository.save(MyPage);
-            });
+            MyPage.setStatus(matchCanceled.getEventType()); //상태값은 모두 이벤트타입으로 셋팅함
+            MyPageRepository.save(MyPage);
+        });
 
-        }
     }
+}
     
 ```
 - mypage의 view로 조회
+
 ![image](https://user-images.githubusercontent.com/75401933/105024191-21462380-5a8f-11eb-8abc-b169dd9d8c3a.png)
 
 
