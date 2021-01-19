@@ -562,16 +562,94 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
 
 ```
 
+## Gateway
+
+```
+server:
+  port: 8088
+
+---
+
+spring:
+  profiles: default
+  cloud:
+    gateway:
+      routes:
+        - id: match
+          uri: http://localhost:8081
+          predicates:
+            - Path=/matches/**
+        - id: visit
+          uri: http://localhost:8082
+          predicates:
+            - Path=/visits/**,/visitReqLists/**
+        - id: payment
+          uri: http://localhost:8083
+          predicates:
+            - Path=/payments/**
+        - id: mypage
+          uri: http://localhost:8084
+          predicates:
+            - Path=/myPages/**,/myPages/**
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "*"
+            allowedMethods:
+              - "*"
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+
+
+---
+
+spring:
+  profiles: docker
+  cloud:
+    gateway:
+      routes:
+        - id: match
+          uri: http://match:8080
+          predicates:
+            - Path=/matches/**
+        - id: visit
+          uri: http://visit:8080
+          predicates:
+            - Path=/visits/**,/visitReqLists/**
+        - id: payment
+          uri: http://payment:8080
+          predicates:
+            - Path=/payments/**
+        - id: mypage
+          uri: http://mypage:8080
+          predicates:
+            - Path=/myPages/**,/myPages/**
+```
+
+- Gateway 서비스 실행 상태에서 8088과 8081로 각각 서비스 실행하였을 때 동일하게 match 서비스 실행되었다.
+```
+http localhost:8088/matches id=50 price=50000 status=matchRequest
+```
+![8088포트](https://user-images.githubusercontent.com/45473909/105039570-0f22b000-5aa4-11eb-9090-45662dcd79d0.PNG)
+
+```
+http localhost:8081/matches id=51 price=50000 status=matchRequest
+```
+![8081포트](https://user-images.githubusercontent.com/45473909/105039551-0a5dfc00-5aa4-11eb-86c0-c3fc63d5b0f6.PNG)
+
+
 
 # 운영
 
-## CI/CD 설정 (수정필요)
+## CI/CD 설정
 
 
 각 구현체들은 각자의 source repository 에 구성되었고, 사용한 CI/CD 플랫폼은 GCP를 사용하였으며, pipeline build script 는 각 프로젝트 폴더 이하에 cloudbuild.yml 에 포함되었다.
 
 
-## 동기식 호출 / 서킷 브레이킹 / 장애격리 (수정필요)
+## 동기식 호출 / 서킷 브레이킹 / 장애격리
 
 * 서킷 브레이킹 프레임워크의 선택: Spring FeignClient + Hystrix 옵션을 사용하여 구현함
 
@@ -746,7 +824,7 @@ Shortest transaction:	        0.00
 - Retry 의 설정 (istio)
 - Availability 가 높아진 것을 확인 (siege)
 
-### 오토스케일 아웃 (수정필요)
+### 오토스케일 아웃
 앞서 CB 는 시스템을 안정되게 운영할 수 있게 해줬지만 사용자의 요청을 100% 받아들여주지 못했기 때문에 이에 대한 보완책으로 자동화된 확장 기능을 적용하고자 한다. 
 
 
@@ -796,8 +874,7 @@ siege -c10 -t30S -r10 --content-type "application/json" 'http://match:8080/match
 1. seige 의 화면으로 넘어가서 Availability 가 100% 미만으로 떨어졌는지 확인
 ![image](https://user-images.githubusercontent.com/75401933/105041017-d7b50300-5aa5-11eb-90dd-5031cd846d81.png)
 
-
-1. 배포기간중 Availability 가 평소 100%에서 60% 대로 떨어지는 것을 확인. 원인은 쿠버네티스가 성급하게 새로 올려진 서비스를 READY 상태로 인식하여 서비스 유입을 진행한 것이기 때문. 이를 막기위해 Readiness Probe 를 설정함:
+1. 배포기간중 Availability 가 평소 100%에서 80% 대로 떨어지는 것을 확인. 원인은 쿠버네티스가 성급하게 새로 올려진 서비스를 READY 상태로 인식하여 서비스 유입을 진행한 것이기 때문. 이를 막기위해 Readiness Probe 를 설정함:
 1. CI/CD를 통해 새로운 배포 시작
 1. 동일한 시나리오로 재배포 한 후 Availability 확인:
 ![image](https://user-images.githubusercontent.com/75401933/105041119-f4e9d180-5aa5-11eb-9afb-e7af9c06fcce.png)
