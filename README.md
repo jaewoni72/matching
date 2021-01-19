@@ -116,6 +116,24 @@
 ![image](https://user-images.githubusercontent.com/75401933/105022842-8e58b980-5a8d-11eb-868c-aae24f8db3ed.png)
 
 
+---
+## Event Storming 결과
+* MSAEz 로 모델링한 이벤트스토밍 결과: http://msaez.io/#/storming/nZJ2QhwVc4NlVJPbtTkZ8x9jclF2/every/a77281d704710b0c2e6a823b6e6d973a/-M5AV2z--su_i4BfQfeF
+
+## 이벤트 도출
+### 1차 이벤트스토밍 결과
+![image](https://user-images.githubusercontent.com/75401933/100964027-11b85d00-356b-11eb-97b0-abd00e78c2c6.png)
+
+### 최종 이벤트스토밍 결과
+![image](https://user-images.githubusercontent.com/45473909/105028232-1d68d000-5a94-11eb-97f8-6ece48856427.png)
+---
+```
+- 도메인 서열 분리
+    - Core Domain:  match, visit  : 핵심 서비스이며, 연간 Up-time SLA 수준을 99.999% 목표, 배포주기는 match의 경우 1주일 1회 미만, visit의 경우 1개월 1회 미만
+    - Supporting Domain:  visitReqLists , myPages : 경쟁력을 내기위한 서비스이며, SLA 수준은 연간 60% 이상 uptime 목표, 배포주기는 각 팀의 자율이나 표준 스프린트 주기가 1주일 이므로 1주일 1회 이상을 기준으로 함.
+    - General Domain:   payment(결제) : 결제서비스로 3rd Party 외부 서비스를 사용하는 것이 경쟁력이 높음
+```
+
 ## 헥사고날 아키텍처 다이어그램 도출
     
 ![image](https://user-images.githubusercontent.com/75401933/105027116-b8f94100-5a92-11eb-8147-60665aee1f62.png)
@@ -127,17 +145,17 @@
 
 # 구현:
 
-분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트와 파이선으로 구현하였다. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 808n 이다)
+분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트와 파이선으로 구현하였다. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 8084 이다)
 
 ```
 cd match
 mvn spring-boot:run
 
-cd payment
-mvn spring-boot:run 
-
 cd visit
 mvn spring-boot:run  
+
+cd payment
+mvn spring-boot:run 
 
 cd mypage
 mvn spring-boot:run  
@@ -145,74 +163,186 @@ mvn spring-boot:run
 
 ## DDD 의 적용
 
-- 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: (예시는 pay 마이크로 서비스). 이때 가능한 현업에서 사용하는 언어 (유비쿼터스 랭귀지)를 그대로 사용하려고 노력했다. 하지만, 일부 구현에 있어서 영문이 아닌 경우는 실행이 불가능한 경우가 있기 때문에 계속 사용할 방법은 아닌것 같다. (Maven pom.xml, Kafka의 topic id, FeignClient 의 서비스 id 등은 한글로 식별자를 사용하는 경우 오류가 발생하는 것을 확인하였다)
+- 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: (예시는 match 마이크로 서비스). 이때 가능한 현업에서 사용하는 언어 (유비쿼터스 랭귀지)를 그대로 사용하였고, 모든 구현에 있어서 영문으로 사용하여 별다른  오류없이 구현하였다.
 
 ```
-package fooddelivery;
+package matching;
 
 import javax.persistence.*;
+
+import matching.external.Payment;
+import matching.external.PaymentService;
 import org.springframework.beans.BeanUtils;
 import java.util.List;
 
 @Entity
-@Table(name="결제이력_table")
-public class 결제이력 {
+@Table(name="Match_table")
+public class Match {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
     private Long id;
-    private String orderId;
-    private Double 금액;
+    private Integer price;
+    private String status;
+
+    @PostPersist
+    public void onPostPersist(){
+        MatchRequested matchRequested = new MatchRequested();
+        BeanUtils.copyProperties(this, matchRequested);
+        matchRequested.publishAfterCommit();
+
+        //Following code causes dependency to external APIs
+        // it is NOT A GOOD PRACTICE. instead, Event-Policy mapping is recommended.
+        Payment payment = new Payment();
+        // mappings goes here
+
+        //변수 setting
+        payment.setMatchId(Long.valueOf(this.getId()));
+        payment.setPrice(Integer.valueOf(this.getPrice()));
+        payment.setPaymentAction("Approved");
+
+        MatchApplication.applicationContext.getBean(PaymentService.class)
+                .paymentRequest(payment);
+    }
+
+    @PreUpdate
+    public void onPreUpdate(){
+        if("cancel".equals(status)) {
+            MatchCanceled matchCanceled = new MatchCanceled();
+            BeanUtils.copyProperties(this, matchCanceled);
+            matchCanceled.publishAfterCommit();
+        }
+    }
 
     public Long getId() {
         return id;
     }
-
     public void setId(Long id) {
         this.id = id;
     }
-    public String getOrderId() {
-        return orderId;
+
+    public Integer getPrice() {
+        return price;
+    }
+    public void setPrice(Integer price) {
+        this.price = price;
     }
 
-    public void setOrderId(String orderId) {
-        this.orderId = orderId;
+    public String getStatus() { return status; }
+    public void setStatus(String status) {
+        this.status = status;
     }
-    public Double get금액() {
-        return 금액;
-    }
-
-    public void set금액(Double 금액) {
-        this.금액 = 금액;
-    }
-
 }
 
 ```
 - Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다
 ```
-package fooddelivery;
+package matching;
 
 import org.springframework.data.repository.PagingAndSortingRepository;
 
-public interface 결제이력Repository extends PagingAndSortingRepository<결제이력, Long>{
+public interface MatchRepository extends PagingAndSortingRepository<Match, Long>{
 }
 ```
+
 - 적용 후 REST API 의 테스트
 ```
-# app 서비스의 주문처리
-http localhost:8081/orders item="통닭"
+# match 서비스의 접수처리
+http localhost:8088/matches id=5000 price=50000 status=matchRequest
+```
+![1 match에서명령어날림](https://user-images.githubusercontent.com/45473909/105010823-898d0900-5a7f-11eb-82b3-ab7163311364.PNG)
+```
+# match 서비스의 접수상태확인
+http localhost:8088/matches/5000
+```
+![2 match테이블에쌓임](https://user-images.githubusercontent.com/45473909/105010828-8b56cc80-5a7f-11eb-8a8e-9a96984d6ab6.PNG)
+```
+# payment 서비스의 상태확인
+http localhost:8088/payments/5000
+```
+![3 payment에서match에서날린데이터확인](https://user-images.githubusercontent.com/45473909/105011427-48e1bf80-5a80-11eb-9c95-e3d2e760e931.PNG)
+```
+# match 서비스에 대한 visit 응답
+http POST localhost:8088/visits matchId=5000 teacher=TEACHER visitDate=21/01/21
+```
+![6 visit에서선생님방문계획작성](https://user-images.githubusercontent.com/45473909/105011436-4aab8300-5a80-11eb-8d3e-5fbe98a20668.PNG)
 
-# store 서비스의 배달처리
-http localhost:8083/주문처리s orderId=1
 
-# 주문 상태 확인
-http localhost:8081/orders/1
+## 동기식 호출과 Fallback 처리
+
+분석단계에서의 조건 중 하나로 접수(match)->결제(payment) 간의 호출은 동기식으로 호출하고자  동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient를 이용하여 호출하도록 한다.
+
+- 결제서비스를 호출하기 위하여 FeignClient 를 이용하여 Service 대행 인터페이스 (Proxy) 를 구현
 
 ```
+# (payment) PaymentService.java
+
+package matching.external;
+
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import java.util.Date;
+
+@FeignClient(name="payment", url="${api.payment.url}")
+public interface PaymentService {
+
+    @RequestMapping(method= RequestMethod.POST, path="/payments")
+    public void paymentRequest(@RequestBody Payment payment);
+
+}
+```
+
+- match접수를 받은 직후(@PostPersist) 결제를 요청하도록 처리
+```
+# match.java (Entity)
+  @PostPersist
+    public void onPostPersist(){
+        MatchRequested matchRequested = new MatchRequested();
+        BeanUtils.copyProperties(this, matchRequested);
+        matchRequested.publishAfterCommit();
+
+        //Following code causes dependency to external APIs
+        // it is NOT A GOOD PRACTICE. instead, Event-Policy mapping is recommended.
+        Payment payment = new Payment();
+        // mappings goes here
+
+        //변수 setting
+        payment.setMatchId(Long.valueOf(this.getId()));
+        payment.setPrice(Integer.valueOf(this.getPrice()));
+        payment.setPaymentAction("Approved");
+
+        MatchApplication.applicationContext.getBean(PaymentService.class)
+                .paymentRequest(payment);
+    }
+```
+
+- 동기식 호출에서는 호출 시간에 따른 타임 커플링이 발생하며, 결제 시스템이 장애가 나면 접수도 못받는다는 것을 확인:
 
 
-## 폴리글랏 퍼시스턴스
+```
+# 결제 (payment) 서비스를 잠시 내려놓음 (ctrl+c)
+
+# 접수처리
+http localhost:8088/matches id=5005 price=50000 status=matchRequest   #Fail
+```
+![11 payment내리면match안됨](https://user-images.githubusercontent.com/45473909/105013488-a7a83880-5a82-11eb-9417-92d92668b879.PNG)
+```
+
+# payment서비스 재기동
+cd payment
+mvn spring-boot:run
+
+#match 처리
+http localhost:8088/matches id=5006 price=50000 status=matchRequest  #Success
+```
+![11 payment올리면match됨](https://user-images.githubusercontent.com/45473909/105013494-a8d96580-5a82-11eb-95de-73a47f072920.PNG)
+```
+- 또한 과도한 요청시에 서비스 장애가 도미노 처럼 벌어질 수 있다. (서킷브레이커, 폴백 처리는 운영단계에서 설명한다.)
+```
+
+## 폴리글랏 퍼시스턴스 (수정필요)
 
 앱프런트 (app) 는 서비스 특성상 많은 사용자의 유입과 상품 정보의 다양한 콘텐츠를 저장해야 하는 특징으로 인해 RDB 보다는 Document DB / NoSQL 계열의 데이터베이스인 Mongo DB 를 사용하기로 하였다. 이를 위해 order 의 선언에는 @Entity 가 아닌 @Document 로 마킹되었으며, 별다른 작업없이 기존의 Entity Pattern 과 Repository Pattern 적용과 데이터베이스 제품의 설정 (application.yml) 만으로 MongoDB 에 부착시켰다
 
@@ -246,7 +376,7 @@ public interface 주문Repository extends JpaRepository<Order, UUID>{
 
 ```
 
-## 폴리글랏 프로그래밍
+## 폴리글랏 프로그래밍 (수정필요)
 
 고객관리 서비스(customer)의 시나리오인 주문상태, 배달상태 변경에 따라 고객에게 카톡메시지 보내는 기능의 구현 파트는 해당 팀이 python 을 이용하여 구현하기로 하였다. 해당 파이썬 구현체는 각 이벤트를 수신하여 처리하는 Kafka consumer 로 구현되었고 코드는 다음과 같다:
 ```
@@ -281,7 +411,7 @@ CMD ["python", "policy-handler.py"]
 ```
 
 
-## 동기식 호출 과 Fallback 처리
+## 동기식 호출 과 Fallback 처리 (수정필요)
 
 분석단계에서의 조건 중 하나로 주문(app)->결제(pay) 간의 호출은 동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 한다. 
 
@@ -340,7 +470,7 @@ http localhost:8081/orders item=피자 storeId=2   #Success
 
 
 
-## 비동기식 호출 / 시간적 디커플링 / 장애격리 / 최종 (Eventual) 일관성 테스트
+## 비동기식 호출 / 시간적 디커플링 / 장애격리 / 최종 (Eventual) 일관성 테스트 (수정필요)
 
 
 결제가 이루어진 후에 상점시스템으로 이를 알려주는 행위는 동기식이 아니라 비 동기식으로 처리하여 상점 시스템의 처리를 위하여 결제주문이 블로킹 되지 않아도록 처리한다.
@@ -515,13 +645,13 @@ public void wheneverMatchCanceled_(@Payload MatchCanceled matchCanceled){
 
 # 운영
 
-## CI/CD 설정
+## CI/CD 설정 (수정필요)
 
 
 각 구현체들은 각자의 source repository 에 구성되었고, 사용한 CI/CD 플랫폼은 GCP를 사용하였으며, pipeline build script 는 각 프로젝트 폴더 이하에 cloudbuild.yml 에 포함되었다.
 
 
-## 동기식 호출 / 서킷 브레이킹 / 장애격리
+## 동기식 호출 / 서킷 브레이킹 / 장애격리 (수정필요)
 
 * 서킷 브레이킹 프레임워크의 선택: Spring FeignClient + Hystrix 옵션을 사용하여 구현함
 
@@ -696,7 +826,7 @@ Shortest transaction:	        0.00
 - Retry 의 설정 (istio)
 - Availability 가 높아진 것을 확인 (siege)
 
-### 오토스케일 아웃
+### 오토스케일 아웃 (수정필요)
 앞서 CB 는 시스템을 안정되게 운영할 수 있게 해줬지만 사용자의 요청을 100% 받아들여주지 못했기 때문에 이에 대한 보완책으로 자동화된 확장 기능을 적용하고자 한다. 
 
 
@@ -733,7 +863,7 @@ Concurrency:		       96.02
 ```
 
 
-## 무정지 재배포
+## 무정지 재배포 (수정필요)
 
 * 먼저 무정지 재배포가 100% 되는 것인지 확인하기 위해서 Autoscaler 이나 CB 설정을 제거함
 
