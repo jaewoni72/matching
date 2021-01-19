@@ -335,9 +335,9 @@ http localhost:8088/matches id=5006 price=50000 status=matchRequest  #Success
 
 ## 이벤트드리븐 아키텍쳐의 구현
 
-### 비동기식 호출 / 시간적 디커플링 / 장애격리 / 최종 (Eventual) 일관성 테스트 
+### 비동기식 호출 
 
-결제요청이 완료 된 후에 방문매칭 시스템으로 이를 알려주는 행위는 동기식이 아니라 비 동기식으로 처리하며, 방문매칭시스템의 처리를 위하여 매칭요청/결제가 블로킹 되지 않도록 처리한다.
+결제가 완료 된 후에 방문(visit) 시스템으로 이를 알려주는 행위는 동기식이 아닌 비동기식으로 처리하며, 방문시스템의 처리를 위하여 매칭요청/결제가 블로킹 되지 않도록 처리한다.
  
 - 이를 위하여 결제요청이력에 기록을 남긴 후에 곧바로 결제 완료 되었다는 도메인 이벤트를 카프카로 송출한다(Publish)
  
@@ -369,7 +369,7 @@ public class Payment {
 
 ```
 
-- 방문 서비스에서는 결제완료 이벤트에 대해서 이를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다:
+- 방문 서비스에서는 결제완료 이벤트를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다:
 
 ```
 package matching;
@@ -410,30 +410,35 @@ public class PolicyHandler{
     }
 
 ```
+### 시간적 디커플링 / 장애격리 
 
-- 방문(visit) 시스템은 결제(payment) 시스템과 완전히 분리되어있으며 이벤트 수신에 따라 처리되기 때문에, 방문 시스템이 유지보수로 인해 잠시 내려간 상태라도 방문요청(match) 및 결제(payment)하는데에 문제가 없다
+방문(visit) 시스템은 결제(payment) 시스템과 완전히 분리되어있으며 이벤트 수신에 따라 처리되기 때문에, 방문 시스템이 유지보수로 인해 잠시 내려간 상태라도 방문요청(match) 및 결제(payment)하는데에 문제가 없다
 
+
+- 방문 서비스(visit)를 잠시 놓은 후 매칭 요청 처리
 ```
-# 방문 서비스(visit)를 잠시 내려놓음
-
-# 매칭 요청 처리
+# 매칭요청 처리
 http POST http://localhost:8081/matches id=101 price=5000 status=matchRequest   #Success
 ```
 ![image](https://user-images.githubusercontent.com/75401910/105030156-bd275d80-5a96-11eb-87d0-7c16955c76ff.PNG)
 
+- 결제서비스가 정상적으로 조회되었는지 확인
 ```
-# 결제승인
 http http://localhost:8083/payments   #Success
 ```
 ![image](https://user-images.githubusercontent.com/75401933/105035459-5efe7880-5a9e-11eb-9e60-d824d2f1a4cc.png)
+
+- 방문 서비스 다시 가동
 ```
-#방문(visit) 서비스 기동
 cd visit
 mvn spring-boot:run
+```
 
-#방문상태 확인(기동전/후)
-http POST http://localhost:8082/visits matchId=101 teacher=Smith visitDate=20210101 # 신규 접수된 매칭요청건에 대해 선생님과 방문일자 매칭
-http localhost:8082/visits     # 신규방문 생성됨
+- 가동 전/후의 방문상태 확인
+```
+# 신규 접수된 매칭요청건에 대해 선생님과 방문일자 매칭
+http POST http://localhost:8082/visits matchId=101 teacher=Smith visitDate=20210101 
+http localhost:8082/visits     
 ```
 ![image](https://user-images.githubusercontent.com/75401933/105036115-65412480-5a9f-11eb-8cf8-ea4e46376a46.png)
 
