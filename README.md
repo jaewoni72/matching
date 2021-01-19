@@ -15,16 +15,14 @@
   - [구현:](#구현-)
     - [DDD 의 적용](#DDD-의-적용)
     - [동기식 호출 과 Fallback 처리](#동기식-호출과-Fallback-처리)
-    - [폴리글랏 퍼시스턴스](#폴리글랏-퍼시스턴스)
-    - [폴리글랏 프로그래밍](#폴리글랏-프로그래밍)
-    - [비동기식 호출 과 Eventual Consistency](#비동기식-호출-과-Eventual-Consistency)
-    - [CQRS](#CQRS)
+    - [이벤트드리븐 아키텍쳐의 구현 - 수정필요](#이벤트드리븐-아키텍쳐의-구현)
+    - [폴리글랏 퍼시스턴스 - 수정필요](#폴리글랏-퍼시스턴스)
+    - [폴리글랏 프로그래밍 - 수정필요](#폴리글랏-프로그래밍)
   - [운영](#운영)
-    - [CI/CD 설정](#cicd설정)
-    - [동기식 호출 / 서킷 브레이킹 / 장애격리](#동기식-호출-서킷-브레이킹-장애격리)
-    - [오토스케일 아웃](#오토스케일-아웃)
-    - [무정지 재배포](#무정지-재배포)
-  - [신규 개발 조직의 추가](#신규-개발-조직의-추가)
+    - [CI/CD 설정 - 수정필요](#cicd설정)
+    - [동기식 호출 / 서킷 브레이킹 / 장애격리 - 수정필요](#동기식-호출-서킷-브레이킹-장애격리)
+    - [오토스케일 아웃 - 수정필요](#오토스케일-아웃)
+    - [무정지 재배포 - 수정필요](#무정지-재배포)
 
 # 서비스 시나리오
 
@@ -336,77 +334,9 @@ http localhost:8088/matches id=5006 price=50000 status=matchRequest  #Success
 - 또한 과도한 요청시에 서비스 장애가 도미노 처럼 벌어질 수 있다. (서킷브레이커, 폴백 처리는 운영단계에서 설명한다.)
 ```
 
-## 폴리글랏 퍼시스턴스 (수정필요)
+## 이벤트드리븐 아키텍쳐의 구현
 
-앱프런트 (app) 는 서비스 특성상 많은 사용자의 유입과 상품 정보의 다양한 콘텐츠를 저장해야 하는 특징으로 인해 RDB 보다는 Document DB / NoSQL 계열의 데이터베이스인 Mongo DB 를 사용하기로 하였다. 이를 위해 order 의 선언에는 @Entity 가 아닌 @Document 로 마킹되었으며, 별다른 작업없이 기존의 Entity Pattern 과 Repository Pattern 적용과 데이터베이스 제품의 설정 (application.yml) 만으로 MongoDB 에 부착시켰다
-
-```
-# Order.java
-
-package fooddelivery;
-
-@Document
-public class Order {
-
-    private String id; // mongo db 적용시엔 id 는 고정값으로 key가 자동 발급되는 필드기 때문에 @Id 나 @GeneratedValue 를 주지 않아도 된다.
-    private String item;
-    private Integer 수량;
-
-}
-
-
-# 주문Repository.java
-package fooddelivery;
-
-public interface 주문Repository extends JpaRepository<Order, UUID>{
-}
-
-# application.yml
-
-  data:
-    mongodb:
-      host: mongodb.default.svc.cluster.local
-    database: mongo-example
-
-```
-
-## 폴리글랏 프로그래밍 (수정필요)
-
-고객관리 서비스(customer)의 시나리오인 주문상태, 배달상태 변경에 따라 고객에게 카톡메시지 보내는 기능의 구현 파트는 해당 팀이 python 을 이용하여 구현하기로 하였다. 해당 파이썬 구현체는 각 이벤트를 수신하여 처리하는 Kafka consumer 로 구현되었고 코드는 다음과 같다:
-```
-from flask import Flask
-from redis import Redis, RedisError
-from kafka import KafkaConsumer
-import os
-import socket
-
-
-# To consume latest messages and auto-commit offsets
-consumer = KafkaConsumer('fooddelivery',
-                         group_id='',
-                         bootstrap_servers=['localhost:9092'])
-for message in consumer:
-    print ("%s:%d:%d: key=%s value=%s" % (message.topic, message.partition,
-                                          message.offset, message.key,
-                                          message.value))
-
-    # 카톡호출 API
-```
-
-파이선 애플리케이션을 컴파일하고 실행하기 위한 도커파일은 아래와 같다 (운영단계에서 할일인가? 아니다 여기 까지가 개발자가 할일이다. Immutable Image):
-```
-FROM python:2.7-slim
-WORKDIR /app
-ADD . /app
-RUN pip install --trusted-host pypi.python.org -r requirements.txt
-ENV NAME World
-EXPOSE 8090
-CMD ["python", "policy-handler.py"]
-```
-
-## 비동기식 호출 / 시간적 디커플링 / 장애격리 / 최종 (Eventual) 일관성 테스트 (수정필요)
-
-
+### 비동기식 호출 / 시간적 디커플링 / 장애격리 / 최종 (Eventual) 일관성 테스트 (윤정은)
 결제가 이루어진 후에 상점시스템으로 이를 알려주는 행위는 동기식이 아니라 비 동기식으로 처리하여 상점 시스템의 처리를 위하여 결제주문이 블로킹 되지 않아도록 처리한다.
  
 - 이를 위하여 결제이력에 기록을 남긴 후에 곧바로 결제승인이 되었다는 도메인 이벤트를 카프카로 송출한다(Publish)
@@ -489,8 +419,7 @@ mvn spring-boot:run
 http localhost:8080/orders     # 모든 주문의 상태가 "배송됨"으로 확인
 ```
 
-
-## CQRS
+### CQRS
 
 매칭 상태가 변경될 때 마다 mypage에서 event를 수신하여 mypage의 매칭상태를 조회하도록 view를 구현하였다.   
 
@@ -576,6 +505,74 @@ public void wheneverMatchCanceled_(@Payload MatchCanceled matchCanceled){
 
 ![image](https://user-images.githubusercontent.com/75401933/105024191-21462380-5a8f-11eb-8abc-b169dd9d8c3a.png)
 
+
+## 폴리글랏 퍼시스턴스
+
+앱프런트 (app) 는 서비스 특성상 많은 사용자의 유입과 상품 정보의 다양한 콘텐츠를 저장해야 하는 특징으로 인해 RDB 보다는 Document DB / NoSQL 계열의 데이터베이스인 Mongo DB 를 사용하기로 하였다. 이를 위해 order 의 선언에는 @Entity 가 아닌 @Document 로 마킹되었으며, 별다른 작업없이 기존의 Entity Pattern 과 Repository Pattern 적용과 데이터베이스 제품의 설정 (application.yml) 만으로 MongoDB 에 부착시켰다
+
+```
+# Order.java
+
+package fooddelivery;
+
+@Document
+public class Order {
+
+    private String id; // mongo db 적용시엔 id 는 고정값으로 key가 자동 발급되는 필드기 때문에 @Id 나 @GeneratedValue 를 주지 않아도 된다.
+    private String item;
+    private Integer 수량;
+
+}
+
+
+# 주문Repository.java
+package fooddelivery;
+
+public interface 주문Repository extends JpaRepository<Order, UUID>{
+}
+
+# application.yml
+
+  data:
+    mongodb:
+      host: mongodb.default.svc.cluster.local
+    database: mongo-example
+
+```
+
+## 폴리글랏 프로그래밍
+
+고객관리 서비스(customer)의 시나리오인 주문상태, 배달상태 변경에 따라 고객에게 카톡메시지 보내는 기능의 구현 파트는 해당 팀이 python 을 이용하여 구현하기로 하였다. 해당 파이썬 구현체는 각 이벤트를 수신하여 처리하는 Kafka consumer 로 구현되었고 코드는 다음과 같다:
+```
+from flask import Flask
+from redis import Redis, RedisError
+from kafka import KafkaConsumer
+import os
+import socket
+
+
+# To consume latest messages and auto-commit offsets
+consumer = KafkaConsumer('fooddelivery',
+                         group_id='',
+                         bootstrap_servers=['localhost:9092'])
+for message in consumer:
+    print ("%s:%d:%d: key=%s value=%s" % (message.topic, message.partition,
+                                          message.offset, message.key,
+                                          message.value))
+
+    # 카톡호출 API
+```
+
+파이선 애플리케이션을 컴파일하고 실행하기 위한 도커파일은 아래와 같다 (운영단계에서 할일인가? 아니다 여기 까지가 개발자가 할일이다. Immutable Image):
+```
+FROM python:2.7-slim
+WORKDIR /app
+ADD . /app
+RUN pip install --trusted-host pypi.python.org -r requirements.txt
+ENV NAME World
+EXPOSE 8090
+CMD ["python", "policy-handler.py"]
+```
 
 # 운영
 
