@@ -15,7 +15,7 @@
   - [구현:](#구현-)
     - [DDD 의 적용](#DDD-의-적용)
     - [동기식 호출 과 Fallback 처리](#동기식-호출과-Fallback-처리)
-    - [이벤트드리븐 아키텍쳐의 구현 - 수정필요](#이벤트드리븐-아키텍쳐의-구현)
+    - [이벤트드리븐 아키텍쳐의 구현](#이벤트드리븐-아키텍쳐의-구현)
     - [폴리글랏 퍼시스턴스 - 수정필요](#폴리글랏-퍼시스턴스)
     - [폴리글랏 프로그래밍 - 수정필요](#폴리글랏-프로그래밍)
   - [운영](#운영)
@@ -425,7 +425,6 @@ http POST http://localhost:8081/matches id=101 price=5000 status=matchRequest   
 # 결제승인
 http http://localhost:8083/payments   #Success
 ```
-![image](https://user-images.githubusercontent.com/75401910/105031002-fe6c3d00-5a97-11eb-8ac3-03295405ba7c.PNG)
 ![image](https://user-images.githubusercontent.com/75401933/105035459-5efe7880-5a9e-11eb-9e60-d824d2f1a4cc.png)
 ```
 
