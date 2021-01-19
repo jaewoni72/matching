@@ -22,7 +22,7 @@
     - [CI/CD 설정](#cicd설정)
     - [오토스케일 아웃](#오토스케일-아웃)
     - [Persistence Volume](#Persistence-Volume)
-    - [Self-healing (liveness probe)](#Self-healing-(liveness-probe))
+    - [Self-healing (liveness probe)](#Self--healing-(liveness-probe))
     - [동기식 호출 / 서킷 브레이킹 / 장애격리 - 수정필요](#동기식-호출-서킷-브레이킹-장애격리)
     - [무정지 재배포](#무정지-재배포)
 
