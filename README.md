@@ -113,20 +113,14 @@
 
 ## Event Storming 결과
 * MSAEz 로 모델링한 이벤트스토밍 결과:  http://www.msaez.io/#/storming/oXrpW7GBVxVEQ4xDYSfbyK6tNEo1/every/1fcbffb626305265cb4134a6bd8f5216
-![image](https://user-images.githubusercontent.com/75401933/105022842-8e58b980-5a8d-11eb-868c-aae24f8db3ed.png)
-
-
----
-## Event Storming 결과
-* MSAEz 로 모델링한 이벤트스토밍 결과: http://msaez.io/#/storming/nZJ2QhwVc4NlVJPbtTkZ8x9jclF2/every/a77281d704710b0c2e6a823b6e6d973a/-M5AV2z--su_i4BfQfeF
 
 ## 이벤트 도출
 ### 1차 이벤트스토밍 결과
 ![image](https://user-images.githubusercontent.com/75401933/100964027-11b85d00-356b-11eb-97b0-abd00e78c2c6.png)
 
 ### 최종 이벤트스토밍 결과
-![image](https://user-images.githubusercontent.com/45473909/105028232-1d68d000-5a94-11eb-97f8-6ece48856427.png)
----
+![image](https://user-images.githubusercontent.com/75401933/105022842-8e58b980-5a8d-11eb-868c-aae24f8db3ed.png)
+
 ```
 - 도메인 서열 분리
     - Core Domain:  match, visit  : 핵심 서비스이며, 연간 Up-time SLA 수준을 99.999% 목표, 배포주기는 match의 경우 1주일 1회 미만, visit의 경우 1개월 1회 미만
