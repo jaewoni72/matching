@@ -412,7 +412,7 @@ public class PolicyHandler{
 ```
 
 ```
-방문 시스템은 결제시스템과 완전히 분리되어있으며, 이벤트 수신에 따라 처리되기 때문에, 방문 시스템이 유지보수로 인해 잠시 내려간 상태라도 배달하는데 문제가 없다
+방문(visit) 시스템은 결제(payment) 시스템과 완전히 분리되어있으며 이벤트 수신에 따라 처리되기 때문에, 방문 시스템이 유지보수로 인해 잠시 내려간 상태라도 방문요청(match) 및 결제(payment)하는데에 문제가 없다
 
 # 방문 서비스(visit)를 잠시 내려놓음
 
@@ -429,14 +429,13 @@ http http://localhost:8083/payments   #Success
 ```
 
 
-
 #방문(visit) 서비스 기동
 cd visit
 mvn spring-boot:run
 
-#포인트상태 확인(기동전/후)
+#방문상태 확인(기동전/후)
 http POST http://localhost:8082/visits matchId=101 teacher=Smith visitDate=20210101 # 신규 접수된 매칭요청건에 대해 선생님과 방문일자 매칭
-http localhost:8082/visits     # 신규방문매칭 생성됨
+http localhost:8082/visits     # 신규방문 생성됨
 ```
 ![image](https://user-images.githubusercontent.com/75401910/105030335-fcee4500-5a96-11eb-869d-b36226c5f62e.PNG)
 
