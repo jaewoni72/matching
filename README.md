@@ -125,12 +125,12 @@
 
 ## 헥사고날 아키텍처 다이어그램 도출
     
-<img width="463" alt="핵사고날아키텍쳐" src="https://user-images.githubusercontent.com/66051393/105129090-aa109e00-5b27-11eb-84e6-124571b6a187.png">
-
+![핵사고날아키텍쳐](https://user-images.githubusercontent.com/66051393/105129090-aa109e00-5b27-11eb-84e6-124571b6a187.png)
+```
   - Chris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
   - 호출관계에서 PubSub 과 Req/Res 를 구분함
   - 서브 도메인과 바운디드 컨텍스트의 분리:  각 팀의 KPI 별로 아래와 같이 관심 구현 스토리를 나눠가짐
-
+```
 
 # 구현:
 
