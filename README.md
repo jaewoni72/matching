@@ -825,7 +825,7 @@ seige 로 배포작업 직전에 워크로드를 모니터링 함.
 ```
 # 동일한 시나리오로 Availability 확인
 ```
-![siege부하발행시_100퍼센트가용성확보_01](src="https://user-images.githubusercontent.com/66051393/105190490-647cc100-5b79-11eb-80c1-4c32f0db95ef.png)
+![siege부하발행시_100퍼센트가용성확보_01](https://user-images.githubusercontent.com/66051393/105190490-647cc100-5b79-11eb-80c1-4c32f0db95ef.png)
 
 ```
 # 배포기간 동안 Availability 가 변화없기 때문에 무정지 재배포가 성공한 것으로 확인됨.
