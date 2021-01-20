@@ -697,11 +697,17 @@ http localhost:8081/matches id=51 price=50000 status=matchRequest
 ## CI/CD 설정
 각 구현체들은 각자의 source repository 에 구성되었고, 사용한 CI/CD 플랫폼은 Azure를 사용하였으며, pipeline build script 는 각 프로젝트 폴더 이하에 deployment.yml, service.yml 에 포함되었다
 
-<img width="678" alt="01 CI설정" src="https://user-images.githubusercontent.com/66051393/105039224-a4717480-5aa3-11eb-9d28-99fa5a809750.png">
+• CI 설정
+<img width="926" alt="CI" src="https://user-images.githubusercontent.com/66051393/105149096-827cfe00-5b46-11eb-8890-d7d5e13b8f54.png">
 
-<img width="886" alt="02 CD설정" src="https://user-images.githubusercontent.com/66051393/105039282-b521ea80-5aa3-11eb-94c3-1ec50475300d.png">
+• CD 설정
+<img width="958" alt="CD" src="https://user-images.githubusercontent.com/66051393/105149254-b0fad900-5b46-11eb-9d55-6c3074ddd1ab.png">
 
-<img width="647" alt="03 CD설정_상세" src="https://user-images.githubusercontent.com/66051393/105039330-c5d26080-5aa3-11eb-8b05-cabb28c6eaf1.png">
+• 신규 구현체(coupon) 설정
+<img width="889" alt="CD-coupon" src="https://user-images.githubusercontent.com/66051393/105149284-b821e700-5b46-11eb-984c-f532eb8de37b.png">
+
+• 서비스정상기동 확인
+<img width="711" alt="서비스정상기동 확인" src="https://user-images.githubusercontent.com/66051393/105149346-ca038a00-5b46-11eb-88a7-0a173e92deba.png">
 
 
 
