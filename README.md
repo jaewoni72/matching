@@ -582,7 +582,6 @@ public void wheneverMatchCanceled_(@Payload MatchCanceled matchCanceled){
 
 match 는 다른 서비스와 구별을 위해 별도 hsqldb를 사용 하였다. 이를 위해 match내 pom.xml에 dependency를 h2database에서 hsqldb로 변경 하였다.
 
-```
 #match의 pom.xml dependency를 수정하여 DB변경
 
 <img width="960" alt="폴리글랏퍼시스턴스" src="https://user-images.githubusercontent.com/66051393/105132458-4b9aee00-5b2e-11eb-9c9d-32161822fb43.png">
