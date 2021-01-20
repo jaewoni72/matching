@@ -52,7 +52,7 @@
 
 
 # 체크포인트
-
+```
 - 분석 설계
 
 
@@ -107,14 +107,13 @@
   - 무정지 운영 CI/CD (10)
     - Readiness Probe 의 설정과 Rolling update을 통하여 신규 버전이 완전히 서비스를 받을 수 있는 상태일때 신규버전의 서비스로 전환됨을 siege 등으로 증명 
     - Contract Test :  자동화된 경계 테스트를 통하여 구현 오류나 API 계약위반를 미리 차단 가능한가?
-
+```
 
 
 # 분석/설계
 
-
 ## Event Storming 결과
-* MSAEz 로 모델링한 이벤트스토밍 결과:  http://www.msaez.io/#/storming/OmlGD6ICVSRtR6dYFF7jEteSnoS2/mine/3e0ad62233bdff4bdd9d03458ee27b40
+MSAEz 로 모델링한 이벤트스토밍 결과:  http://www.msaez.io/#/storming/OmlGD6ICVSRtR6dYFF7jEteSnoS2/mine/3e0ad62233bdff4bdd9d03458ee27b40
 
 ```
 - 도메인 서열 분리
@@ -124,7 +123,6 @@
 ```
 
 ## 헥사고날 아키텍처 다이어그램 도출
-    
 ![핵사고날아키텍쳐](https://user-images.githubusercontent.com/66051393/105129090-aa109e00-5b27-11eb-84e6-124571b6a187.png)
 ```
   - Chris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
@@ -133,9 +131,7 @@
 ```
 
 # 구현:
-
 분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트로 구현하였다. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 8084 이다)
-
 ```
 cd match
 mvn spring-boot:run
@@ -154,9 +150,7 @@ mvn spring-boot:run
 ```
 
 ## DDD 의 적용
-
 - 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: (예시는 match 마이크로 서비스). 이때 가능한 현업에서 사용하는 언어 (유비쿼터스 랭귀지)를 그대로 사용하였고, 모든 구현에 있어서 영문으로 사용하여 별다른  오류없이 구현하였다.
-
 ```
 package matching;
 
@@ -236,6 +230,7 @@ public interface MatchRepository extends PagingAndSortingRepository<Match, Long>
 }
 ```
 
+
 - 적용 후 REST API 의 테스트
 ```
 # match 서비스의 접수처리
@@ -262,8 +257,6 @@ http POST localhost:8082/visits matchId=1000 teacher=TEACHER visitDate=21/01/21
 http POST localhost:8085/coupons matchId=
 ```
 ![5 coupon테이블에쌓임](https://user-images.githubusercontent.com/66051393/105128850-38d0eb00-5b27-11eb-98e9-6ff9506bcc2a.png)
-
-
 
 
 
@@ -320,9 +313,8 @@ public interface PaymentService {
 
 - 동기식 호출에서는 호출 시간에 따른 타임 커플링이 발생하며, 결제 시스템이 장애가 나면 접수도 못받는다는 것을 확인
 
-
 ```
-# 결제 (payment) 서비스를 잠시 내려놓음 (ctrl+c)
+# 결제 (payment) 서비스를 잠시 내려놓음
 
 # 접수처리
 http POST http://localhost:8081/matches id=2000 price=20000 status=matchRequest   #Fail
@@ -339,9 +331,9 @@ http localhost:8088/matches id=2006 price=20000 status=matchRequest  #Success
 ```
 ![11 payment올리면match됨](https://user-images.githubusercontent.com/66051393/105129536-9f0a3d80-5b28-11eb-95ed-14f9cde24a44.png)
 
-- 또한 과도한 요청시에 서비스 장애가 도미노 처럼 벌어질 수 있다. (서킷브레이커, 폴백 처리는 운영단계에서 설명한다.)
-
-
+```
+또한 과도한 요청시에 서비스 장애가 도미노 처럼 벌어질 수 있다. (서킷브레이커, 폴백 처리는 운영단계에서 설명한다.)
+```
 
 ## 이벤트드리븐 아키텍쳐의 구현
 
