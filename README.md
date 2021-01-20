@@ -132,9 +132,9 @@
     
 ![image](https://user-images.githubusercontent.com/45473909/105029093-3c1b9680-5a95-11eb-812d-b4b634e5fcec.png)
 
-    - Chris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
-    - 호출관계에서 PubSub 과 Req/Res 를 구분함
-    - 서브 도메인과 바운디드 컨텍스트의 분리:  각 팀의 KPI 별로 아래와 같이 관심 구현 스토리를 나눠가짐
+  - Chris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
+  - 호출관계에서 PubSub 과 Req/Res 를 구분함
+  - 서브 도메인과 바운디드 컨텍스트의 분리:  각 팀의 KPI 별로 아래와 같이 관심 구현 스토리를 나눠가짐
 
 
 # 구현:
@@ -538,30 +538,22 @@ public void wheneverMatchCanceled_(@Payload MatchCanceled matchCanceled){
 match 는 다른 서비스와 구별을 위해 별도 hsqldb를 사용 하였다. 이를 위해 match내 pom.xml에 dependency를 h2database에서 hsqldb로 변경 하였다.
 
 ```
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-<modelVersion>4.0.0</modelVersion>
-<parent>
-<groupId>org.springframework.boot</groupId>
-<artifactId>spring-boot-starter-parent</artifactId>
-<version>2.1.9.RELEASE</version>
-<relativePath/> <!-- lookup parent from repository -->
-</parent>
-<groupId>matching</groupId>
-<artifactId>match</artifactId>
-<version>0.0.1-SNAPSHOT</version>
-<name>match</name>
-<description>Demo project for Spring Boot</description>
+#match의 pom.xml dependency를 수정하여 DB변경
 
-....
+  <!--
+  <dependency>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <scope>runtime</scope>
+  </dependency>
+  -->
 
-<dependency>
-<groupId>org.hsqldb</groupId>
-<artifactId>hsqldb</artifactId>
-<version>2.4.0</version>
-<scope>runtime</scope>
-</dependency>
+  <dependency>
+    <groupId>org.hsqldb</groupId>
+    <artifactId>hsqldb</artifactId>
+    <version>2.4.0</version>
+    <scope>runtime</scope>
+  </dependency>
 
 ```
 
@@ -604,7 +596,6 @@ spring:
             allowedHeaders:
               - "*"
             allowCredentials: true
-
 
 ---
 
