@@ -811,15 +811,19 @@ seige 로 배포작업 직전에 워크로드를 모니터링 함.
 ```
 # match 서비스의 Deployment.yml에 Readiness설정 추가 후 CI/CD를 통해 재배포
 ```
+![readiness설정후재배포시02-1](https://user-images.githubusercontent.com/66051393/105206017-369f7880-5b89-11eb-9775-ddbb121b30d0.png)
 ```
-# 신규 pod가 생성된 후 -> 기존 pod 삭제 후 -> 신규 pod 활성화되는 것을 확인
-``` 
+# 신규 pod 생성
+```
 ![readiness설정후_재배포시_01](https://user-images.githubusercontent.com/66051393/105190112-07810b00-5b79-11eb-9e31-5e55c222dc6e.png)
-
+```
+# 기존 pod 삭제
+```
 ![readiness설정후_재배포시_02](https://user-images.githubusercontent.com/66051393/105190148-11a30980-5b79-11eb-8cfc-470830a3955f.png)
 
-![readiness설정후_재배포시_02](https://user-images.githubusercontent.com/66051393/105190188-18ca1780-5b79-11eb-83bd-4fd0969c4c41.png)
-
+```
+# 신규 pod 활성화
+```
 ![readiness설정후_재배포시_03](https://user-images.githubusercontent.com/66051393/105190396-4d3dd380-5b79-11eb-8a98-6a1fdb8f2cb8.png)
  
 ```
