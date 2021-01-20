@@ -688,15 +688,10 @@ server:
 
 ```
 
-http localhost:8088/matches id=50 price=50000 status=matchRequest
+http POST http://match:8080/matches id=9000 price=1000 status=matchRequest
+http POST http://visit:8080/visits id=9000 price=1000 status=matchRequest
 
-![8088포트](https://user-images.githubusercontent.com/45473909/105039570-0f22b000-5aa4-11eb-9090-45662dcd79d0.PNG)
-
-
-
-http localhost:8081/matches id=51 price=50000 status=matchRequest
-
-![8081포트](https://user-images.githubusercontent.com/45473909/105039551-0a5dfc00-5aa4-11eb-86c0-c3fc63d5b0f6.PNG)
+![매칭요청/방문확정](https://user-images.githubusercontent.com/66051393/105153182-7cd5e700-5b4b-11eb-9c21-246045d62f92.png)
 
 
 
