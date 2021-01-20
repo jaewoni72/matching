@@ -16,7 +16,7 @@
     - [DDD 의 적용](#DDD-의-적용)
     - [동기식 호출 과 Fallback 처리](#동기식-호출과-Fallback-처리)
     - [이벤트드리븐 아키텍쳐의 구현](#이벤트드리븐-아키텍쳐의-구현)
-    - [Poliglot](#poliglot)
+    - [Poliglot](#폴리글랏-퍼시스턴스)
     - [Gateway](#Gateway)
   - [운영](#운영)
     - [CI/CD 설정](#cicd설정)
@@ -25,6 +25,7 @@
     - [Persistence Volume](#Persistence-Volume)
     - [Self_healing (liveness probe)](#Self_healing-(liveness-probe))
     - [무정지 재배포](#무정지-재배포)
+
 
 # 서비스 시나리오
 
@@ -108,6 +109,7 @@
     - Contract Test :  자동화된 경계 테스트를 통하여 구현 오류나 API 계약위반를 미리 차단 가능한가?
 
 
+
 # 분석/설계
 
 
@@ -154,6 +156,7 @@ mvn spring-boot:run
 cd mypage
 mvn spring-boot:run  
 ```
+
 
 ## DDD 의 적용
 
@@ -261,6 +264,7 @@ http POST localhost:8088/visits matchId=5000 teacher=TEACHER visitDate=21/01/21
 ![6 visit에서선생님방문계획작성](https://user-images.githubusercontent.com/45473909/105011436-4aab8300-5a80-11eb-8d3e-5fbe98a20668.PNG)
 
 
+
 ## 동기식 호출과 Fallback 처리
 
 분석단계에서의 조건 중 하나로 접수(match)->결제(payment) 간의 호출은 동기식으로 호출하고자  동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient를 이용하여 호출하도록 한다.
@@ -334,6 +338,7 @@ http localhost:8088/matches id=5006 price=50000 status=matchRequest  #Success
 ![11 payment올리면match됨](https://user-images.githubusercontent.com/45473909/105013494-a8d96580-5a82-11eb-95de-73a47f072920.PNG)
 
 - 또한 과도한 요청시에 서비스 장애가 도미노 처럼 벌어질 수 있다. (서킷브레이커, 폴백 처리는 운영단계에서 설명한다.)
+
 
 
 ## 이벤트드리븐 아키텍쳐의 구현
@@ -413,6 +418,8 @@ public class PolicyHandler{
     }
 
 ```
+
+
 ### 시간적 디커플링 / 장애격리 
 
 방문(visit) 시스템은 결제(payment) 시스템과 완전히 분리되어있으며 이벤트 수신에 따라 처리되기 때문에, 방문 시스템이 유지보수로 인해 잠시 내려간 상태라도 방문요청(match) 및 결제(payment)하는데에 문제가 없다
@@ -444,6 +451,7 @@ http POST http://localhost:8082/visits matchId=101 teacher=Smith visitDate=20210
 http localhost:8082/visits     
 ```
 ![image](https://user-images.githubusercontent.com/75401933/105036115-65412480-5a9f-11eb-8cf8-ea4e46376a46.png)
+
 
 
 ### CQRS
@@ -532,8 +540,8 @@ public void wheneverMatchCanceled_(@Payload MatchCanceled matchCanceled){
 
 ![image](https://user-images.githubusercontent.com/75401933/105024191-21462380-5a8f-11eb-8abc-b169dd9d8c3a.png)
 
-## Poliglot
-### 폴리글랏 퍼시스턴스
+
+## 폴리글랏 퍼시스턴스
 
 match 는 다른 서비스와 구별을 위해 별도 hsqldb를 사용 하였다. 이를 위해 match내 pom.xml에 dependency를 h2database에서 hsqldb로 변경 하였다.
 
@@ -556,6 +564,7 @@ match 는 다른 서비스와 구별을 위해 별도 hsqldb를 사용 하였다
   </dependency>
 
 ```
+
 
 ## Gateway
 
@@ -653,7 +662,8 @@ http localhost:8081/matches id=51 price=50000 status=matchRequest
 추후 내용 보완 예정
 
 
-### 오토스케일 아웃
+## 오토스케일 아웃
+
 앞서 CB 는 시스템을 안정되게 운영할 수 있게 해줬지만 사용자의 요청을 100% 받아들여주지 못했기 때문에 이에 대한 보완책으로 자동화된 확장 기능을 적용하고자 한다.
 
 visit 구현체에 대한 replica 를 동적으로 늘려주도록 HPA 를 설정한다. 설정은 CPU 사용량이 10프로를 넘어서면 replica 를 10개까지 늘려준다:
@@ -672,6 +682,7 @@ siege -c20 -t120S -v http://visit:8080/visits/600
 
 
 ## Persistence Volume
+
 visit 컨테이너를 마이크로서비스로 배포하면서 영속성 있는 저장장치(Persistent Volume)를 적용함
 
 • PVC 설정 확인
