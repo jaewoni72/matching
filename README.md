@@ -20,7 +20,7 @@
     - [Gateway](#Gateway)
   - [운영](#운영)
     - [CI/CD 설정](#cicd설정)
-    - [동기식 호출 / 서킷 브레이킹 / 장애격리 - 추후 보완](#동기식-호출-서킷-브레이킹-장애격리)
+    - [동기식 호출 / 서킷 브레이킹 / 장애격리](#동기식-호출-/-서킷-브레이킹-/-장애격리)
     - [오토스케일 아웃](#오토스케일-아웃)
     - [Persistence Volume](#Persistence-Volume)
     - [Self_healing (liveness probe)](#Self_healing-(liveness-probe))
