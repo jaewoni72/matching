@@ -672,24 +672,23 @@ http POST http://visit:8081/matches id=9000 price=1000 status=matchRequest
 ## 운영
 
 ### CI/CD Pipeline설정
-각 구현체들은 각자의 source repository 에 구성되었고, 사용한 CI/CD 플랫폼은 Azure를 사용하였으며, pipeline build script 는 각 프로젝트 폴더 이하에 deployment.yml, service.yml 에 포함되었다
+- 서비스들은 각자의 source repository에 구성되었고, 사용한 CI/CD 플랫폼은 Azure를 사용하였으며, pipeline build script 는 각 프로젝트 폴더 이하에 deployment.yml, service.yml에 포함함
 
 ```
-1.CI 설정
+# CI 설정
 ```
 ![CI 설정](https://user-images.githubusercontent.com/66051393/105149096-827cfe00-5b46-11eb-8890-d7d5e13b8f54.png)
 
 
 ```
-2.CD 설정
+# CD 설정
 ```
 ![CD 설정](https://user-images.githubusercontent.com/66051393/105149254-b0fad900-5b46-11eb-9d55-6c3074ddd1ab.png)
 
 ```
-신규 구현체(coupon) 설정
+# 신규 구현체(coupon) 추가 설정
 ```
 ![coupon 설정](https://user-images.githubusercontent.com/66051393/105149284-b821e700-5b46-11eb-984c-f532eb8de37b.png)
-
 
 ```
 서비스정상기동 확인
@@ -697,46 +696,41 @@ http POST http://visit:8081/matches id=9000 price=1000 status=matchRequest
 ![서비스기동 확인](https://user-images.githubusercontent.com/66051393/105149346-ca038a00-5b46-11eb-88a7-0a173e92deba.png)
 
 
-
 ### 동기식 호출 / 서킷 브레이킹 / 장애격리
-
-서킷 브레이킹 프레임워크의 선택: Spring FeignClient + Hystrix 옵션을 사용하여 구현함
+- 서킷 브레이킹 프레임워크의 선택: Spring FeignClient + Hystrix 옵션을 사용하여 구현함
 시나리오는 매칭요청(match)-->결제(payment) 시의 연결을 RESTful Request/Response 로 연동하여 구현이 되어있고, 결제 요청이 과도할 경우 CB 를 통하여 장애격리.
 
 ```
-1.Hystrix 를 설정:  요청처리 쓰레드에서 처리시간이 680 밀리가 넘어서기 시작하여 어느정도 유지되면 CB 회로가 닫히도록 (요청을 빠르게 실패처리, 차단) 설정
- Match 구현체의 application.yml을 hystrix 라이브러리 추가
+# Hystrix 를 설정:  요청처리 쓰레드에서 처리시간이 680 밀리가 넘어서기 시작하여 어느정도 유지되면 CB 회로가 닫히도록 (요청을 빠르게 실패처리, 차단) 설정
+ match서비스의 application.yml을 hystrix 라이브러리 추가
 ```
 ![서비스기동 확인](https://user-images.githubusercontent.com/66051393/105186079-abb48300-5b74-11eb-88a8-676ee8676c10.png)
 
 ```
-2.피호출 서비스(결제:payment) 의 임의 부하 처리 : 400 밀리에서 증감 300 밀리 증감이 발생하도록 설정
- Payment 구현체 Payment.java (Entity)
+# 피호출 서비스(결제:payment) 의 임의 부하 처리 : 400 밀리에서 증감 300 밀리 증감이 발생하도록 설정
+  payment서비스 Payment.java (Entity)
 ```
 ![피호출화면증적](https://user-images.githubusercontent.com/66051393/105187317-fd114200-5b75-11eb-8cb8-76d545906df0.png)
 
+```
+# 부하테스터 siege 툴을 통한 서킷 브레이커 동작 확인
+  동시사용자 100명 / 60초 동안 부하 발생
 
-3.부하테스터 siege 툴을 통한 서킷 브레이커 동작 확인
- - 동시사용자 100명 / 60초 동안 부하 발생
-``` 
  siege -c100 -t60S -r5 -v --content-type "application/json" 'http://match:8080/matches POST {"id": 600, "price":1000, "status": "matchRequest"}' 
 ``` 
 ![03 화면증적](https://user-images.githubusercontent.com/66051393/105108628-ffd05080-5afd-11eb-826d-66a7b252c09a.png)
 
-
-서킷브레이크가 발생하지 않아 아래와 같이 여러 조건으로 추가 부하테스트를 진행하였으나, 500 에러를 발견할 수 없었음
-
 ```
- - siege -c255 -t1M -r5 -v --content-type "application/json" 'http://match:8080/matches POST {"id": 600, "price":1000, "status": "matchRequest"}' 
- 
+# 서킷브레이크가 발생하지 않아 아래와 같이 여러 조건으로 추가 부하테스트를 진행하였으나, 500 에러를 발견할 수 없었음
+
+ - siege -c255 -t1M -r5 -v --content-type "application/json" 'http://match:8080/matches POST {"id": 600, "price":1000, "status": "matchRequest"}'  
  - siege -c255 -t2M -r5 -v --content-type "application/json" 'http://match:8080/matches POST {"id": 600, "price":1000, "status": "matchRequest"}' 
 ```
 
 
 ### 오토스케일 아웃
-
-앞서 CB 는 시스템을 안정되게 운영할 수 있게 해줬지만 사용자의 요청을 100% 받아들여주지 못했기 때문에 이에 대한 보완책으로 자동화된 확장 기능을 적용하고자 한다.
-visit 구현체에 대한 replica 를 동적으로 늘려주도록 HPA 를 설정한다. 설정은 CPU 사용량이 10프로를 넘어서면 replica 를 10개까지 늘려준다:
+- 앞서 CB는 시스템을 안정되게 운영할 수 있게 해줬지만 사용자의 요청을 100% 받아들여주지 못했기 때문에 이에 대한 보완책으로 자동화된 확장 기능을 적용함
+  visit 서비스에 대한 replica 를 동적으로 늘려주도록 HPA 를 설정한다. 설정은 CPU 사용량이 10프로를 넘어서면 replica 를 10개까지 늘려준다:
 
 ```
 kubectl autoscale deploy visit --min=1 --max=10 --cpu-percent=10
@@ -749,12 +743,10 @@ siege -c20 -t120S -v http://visit:8080/visits/600
 ```
 ![siege부하발생_화면증적](https://user-images.githubusercontent.com/66051393/105187844-96d8ef00-5b76-11eb-996e-04236a1677f6.png)
 
-
 ```
 부하에 따라 visit pod의 cpu 사용률이 증가했고, Pod Replica 수가 증가하는 것을 확인할 수 있었음
 ```
 ![화면증적_스케일아웃적용](https://user-images.githubusercontent.com/66051393/105187925-ace6af80-5b76-11eb-926d-9f71a328bd4f.png)
-
 
 
 ### Persistence Volume
