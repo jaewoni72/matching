@@ -441,10 +441,10 @@ mvn spring-boot:run
 - 가동 전/후의 방문상태 확인
 ```
 # 신규 접수된 매칭요청건에 대해 선생님과 방문일자 매칭
-http POST http://localhost:8082/visits matchId=201 teacher=Smith visitDate=20210101 
+http POST http://localhost:8082/visits matchId=3000 teacher=Smith visitDate=20210101 
 http localhost:8082/visits     
 ```
-![image](https://user-images.githubusercontent.com/75401933/105036115-65412480-5a9f-11eb-8cf8-ea4e46376a46.png)
+<img width="704" alt="시간적티커플링_visit구현과실행_2" src="https://user-images.githubusercontent.com/66051393/105130890-31abdc00-5b2b-11eb-8273-167c4f72c599.png">
 
 
 ### SAGA / Corelation
@@ -574,7 +574,7 @@ public void wheneverMatchCanceled_(@Payload MatchCanceled matchCanceled){
 ```
 - mypage의 view로 조회
 
-![image](https://user-images.githubusercontent.com/75401933/105024191-21462380-5a8f-11eb-8abc-b169dd9d8c3a.png)
+<img width="630" alt="CQRS_mypage화면" src="https://user-images.githubusercontent.com/66051393/105131926-44271500-5b2d-11eb-8d5f-f522ee20e8a8.png">
 
 
 ## 폴리글랏 퍼시스턴스
@@ -584,22 +584,12 @@ match 는 다른 서비스와 구별을 위해 별도 hsqldb를 사용 하였다
 ```
 #match의 pom.xml dependency를 수정하여 DB변경
 
-  <!--
-  <dependency>
-    <groupId>com.h2database</groupId>
-    <artifactId>h2</artifactId>
-    <scope>runtime</scope>
-  </dependency>
-  -->
+<img width="960" alt="폴리글랏퍼시스턴스" src="https://user-images.githubusercontent.com/66051393/105132458-4b9aee00-5b2e-11eb-9c9d-32161822fb43.png">
 
-  <dependency>
-    <groupId>org.hsqldb</groupId>
-    <artifactId>hsqldb</artifactId>
-    <version>2.4.0</version>
-    <scope>runtime</scope>
-  </dependency>
 
-```
+#match 구현체 정상적으로 처리되는 것을 확인함
+
+<img width="629" alt="폴리글랏퍼시스턴스_정상화면" src="https://user-images.githubusercontent.com/66051393/105132515-666d6280-5b2e-11eb-8dc5-07692f14a9ea.png">
 
 
 ## Gateway
@@ -618,7 +608,7 @@ spring:
         - id: match
           uri: http://localhost:8081
           predicates:
-            - Path=/matches/**
+            - Path=/matches/** 
         - id: visit
           uri: http://localhost:8082
           predicates:
@@ -630,7 +620,11 @@ spring:
         - id: mypage
           uri: http://localhost:8084
           predicates:
-            - Path=/myPages/**,/myPages/**
+            - Path=/myPages/**
+        - id: coupon
+            uri: http://localhost:8085
+            predicates:
+              - Path=/coupons/**
       globalcors:
         corsConfigurations:
           '[/**]':
@@ -642,6 +636,7 @@ spring:
               - "*"
             allowCredentials: true
 
+
 ---
 
 spring:
@@ -652,7 +647,7 @@ spring:
         - id: match
           uri: http://match:8080
           predicates:
-            - Path=/matches/**
+            - Path=/matches/** 
         - id: visit
           uri: http://visit:8080
           predicates:
@@ -660,12 +655,29 @@ spring:
         - id: payment
           uri: http://payment:8080
           predicates:
-            - Path=/payments/**
+            - Path=/payments/** 
         - id: mypage
           uri: http://mypage:8080
           predicates:
-            - Path=/myPages/**,/myPages/**
-```
+            - Path=/myPages/**
+        - id: coupon
+          uri: http://coupon:8080
+          predicates:
+            - Path=/coupons/**
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "*"
+            allowedMethods:
+              - "*"
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+
+server:
+  port: 8080
+  
 
 - Gateway 서비스 실행 상태에서 8088과 8081로 각각 서비스 실행하였을 때 동일하게 match 서비스 실행되었다.
 ```
