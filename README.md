@@ -35,10 +35,10 @@
 1. 금액이 결제되면 방문요청내역이 목록에 조회된다.
 1. 선생님은 방문요청을 조회한 후 선생님 이름과 만남시간을 입력하여 방문을 확정한다.
 1. 학생이 매칭을 취소할 수 있다.
-1. 매칭요청이 취소되면 방문이 취소된다.
+1. 매칭요청이 취소되면 방문 및 쿠폰발행이 취소된다.
 1. 학생은 myPage에서 매칭 상태를 중간중간 조회할 수 있다.
 1. 매칭요청 화면에서 상태를 조회할 수 있다. 
-1. 매칭요청/결제요청/방문확정/결제취소/방문취소 시 상태가 변경된다. 
+1. 매칭요청/결제요청/방문확정/쿠폰발행/결제취소/방문취소/쿠폰취소 시 상태가 변경된다. 
 
 비기능적 요구사항
 1. 트랜잭션
@@ -114,18 +114,11 @@
 
 
 ## Event Storming 결과
-* MSAEz 로 모델링한 이벤트스토밍 결과:  http://www.msaez.io/#/storming/oXrpW7GBVxVEQ4xDYSfbyK6tNEo1/every/1fcbffb626305265cb4134a6bd8f5216
-
-## 이벤트 도출
-### 1차 이벤트스토밍 결과
-![image](https://user-images.githubusercontent.com/75401933/100964027-11b85d00-356b-11eb-97b0-abd00e78c2c6.png)
-
-### 최종 이벤트스토밍 결과
-![image](https://user-images.githubusercontent.com/75401933/105022842-8e58b980-5a8d-11eb-868c-aae24f8db3ed.png)
+* MSAEz 로 모델링한 이벤트스토밍 결과:  http://www.msaez.io/#/storming/OmlGD6ICVSRtR6dYFF7jEteSnoS2/mine/3e0ad62233bdff4bdd9d03458ee27b40
 
 ```
 - 도메인 서열 분리
-    - Core Domain:  match, visit  : 핵심 서비스이며, 연간 Up-time SLA 수준을 99.999% 목표, 배포주기는 match의 경우 1주일 1회 미만, visit의 경우 1개월 1회 미만
+    - Core Domain:  match, visit, coupon  : 핵심 서비스이며, 연간 Up-time SLA 수준을 99.999% 목표, 배포주기는 match의 경우 1주일 1회 미만, visit의 경우 1개월 1회 미만
     - Supporting Domain:  visitReqLists , myPages : 경쟁력을 내기위한 서비스이며, SLA 수준은 연간 60% 이상 uptime 목표, 배포주기는 각 팀의 자율이나 표준 스프린트 주기가 1주일 이므로 1주일 1회 이상을 기준으로 함.
     - General Domain:   payment(결제) : 결제서비스로 3rd Party 외부 서비스를 사용하는 것이 경쟁력이 높음
 ```
