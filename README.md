@@ -130,7 +130,7 @@ MSAEz 로 모델링한 이벤트스토밍 결과:  http://www.msaez.io/#/stormin
   - 서브 도메인과 바운디드 컨텍스트의 분리:  각 팀의 KPI 별로 아래와 같이 관심 구현 스토리를 나눠가짐
 ```
 
-# 구현:
+# 구현
 분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트로 구현하였다. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 8084 이다)
 ```
 cd match
@@ -226,35 +226,34 @@ package matching;
 
 import org.springframework.data.repository.PagingAndSortingRepository;
 
-public interface MatchRepository extends PagingAndSortingRepository<Match, Long>{
-}
+public interface MatchRepository extends PagingAndSortingRepository<Match, Long>{ }
 ```
 
 
 - 적용 후 REST API 의 테스트
 ```
 # match 서비스의 접수처리
-http localhost:8081/matches id=1000 price=10000 status=matchRequest
+http POST http://localhost:8081/matches id=1000 price=10000 status=matchRequest
 ```
 ![1 match에서명령어날림](https://user-images.githubusercontent.com/66051393/105128218-efcc6700-5b25-11eb-8771-757bd2a43c91.png)
 ```
 # match 서비스의 접수상태확인
-http localhost:8081/matches/1000
+http http://localhost:8081/matches
 ```
 ![2 match테이블에쌓임](https://user-images.githubusercontent.com/66051393/105128422-5baecf80-5b26-11eb-8303-ce5165a0c5c5.png)
 ```
 # payment 서비스의 상태확인
-http localhost:8083/payments/10000
+http http://localhost:8083/payments
 ```
 ![3 payment에서match에서날린데이터확인](https://user-images.githubusercontent.com/66051393/105128518-86008d00-5b26-11eb-821e-122c5ebd8d8b.png)
 ```
 # match 서비스에 대한 visit 응답
-http POST localhost:8082/visits matchId=1000 teacher=TEACHER visitDate=21/01/21
+http POST http://localhost:8082/visits matchId=1000 teacher=kim visitDate=20210101
 ```
 ![4 visit에서선생님방문계획작성](https://user-images.githubusercontent.com/66051393/105128586-a6304c00-5b26-11eb-81de-9348f27d110b.png)
 ```
 # coupon 서비스의 상태확인
-http POST localhost:8085/coupons matchId=
+http http://localhost:8085/coupons
 ```
 ![5 coupon테이블에쌓임](https://user-images.githubusercontent.com/66051393/105128850-38d0eb00-5b27-11eb-98e9-6ff9506bcc2a.png)
 
@@ -426,19 +425,22 @@ public class PolicyHandler{
 
 - 방문 서비스 다시 가동
 ```
+
+```
 cd visit
 mvn spring-boot:run
-```
 
 - 가동 전/후의 방문상태 확인
 ```
-# 신규 접수된 매칭요청건에 대해 선생님과 방문일자 매칭
+
+### 신규 접수된 매칭요청건에 대해 선생님과 방문일자 매칭
+```
 http POST http://localhost:8082/visits matchId=3000 teacher=Smith visitDate=20210101 
 http localhost:8082/visits     
+```
 
-```
 <img width="704" alt="시간적티커플링_visit구현과실행_2" src="https://user-images.githubusercontent.com/66051393/105130890-31abdc00-5b2b-11eb-8273-167c4f72c599.png">
-```
+
 
 ### SAGA / Corelation
 
@@ -570,25 +572,23 @@ public void wheneverMatchCanceled_(@Payload MatchCanceled matchCanceled){
 <img width="630" alt="CQRS_mypage화면" src="https://user-images.githubusercontent.com/66051393/105131926-44271500-5b2d-11eb-8d5f-f522ee20e8a8.png">
 
 
-## 폴리글랏 퍼시스턴스
+### 폴리글랏 퍼시스턴스
 
-match 는 다른 서비스와 구별을 위해 별도 hsqldb를 사용 하였다. 이를 위해 match내 pom.xml에 dependency를 h2database에서 hsqldb로 변경 하였다.
+match 구현체는 다른 서비스와 구별을 위해 별도 hsqldb를 사용 하였다. 이를 위해 match내 pom.xml에 dependency를 h2database에서 hsqldb로 변경 하였다.
 
 #match의 pom.xml dependency를 수정하여 DB변경
 
-<img width="960" alt="폴리글랏퍼시스턴스" src="https://user-images.githubusercontent.com/66051393/105132458-4b9aee00-5b2e-11eb-9c9d-32161822fb43.png">
+![폴리글랏퍼시스턴스](https://user-images.githubusercontent.com/66051393/105132458-4b9aee00-5b2e-11eb-9c9d-32161822fb43.png)
 
 
-#match 구현체 정상적으로 처리되는 것을 확인함
+- match 구현체 정상적으로 처리되는 것을 확인함
+![폴리글랏퍼시스턴스_정상화면](https://user-images.githubusercontent.com/66051393/105132515-666d6280-5b2e-11eb-8dc5-07692f14a9ea.png)
 
-<img width="629" alt="폴리글랏퍼시스턴스_정상화면" src="https://user-images.githubusercontent.com/66051393/105132515-666d6280-5b2e-11eb-8dc5-07692f14a9ea.png">
 
+### Gateway
 
-## Gateway
-
+- Gateway 구현체의 Application.yml 설정
 ```
-• Gateway 구현체의 Application.yml 설정
-
 server:
   port: 8088
 
@@ -673,73 +673,74 @@ server:
   port: 8080
 ```
 
-```
-• Gateway 구현체의 Application.yml 설정  
 
-- Gateway 서비스 실행 상태에서 8088과 8081로 각각 서비스 실행하였을 때 동일하게 match 서비스 실행되었다.```
-
+- Gateway 구현체의 Application.yml 설정  
+  Gateway 서비스 실행 상태에서 8088과 8081로 각각 서비스 실행하였을 때 동일하게 match 서비스 실행되었다.
 ```
 
 http POST http://match:8080/matches id=9000 price=1000 status=matchRequest
 http POST http://visit:8080/visits id=9000 price=1000 status=matchRequest
+```
 
 ![매칭요청/방문확정](https://user-images.githubusercontent.com/66051393/105153182-7cd5e700-5b4b-11eb-9c21-246045d62f92.png)
 
 
+## 운영
 
-# 운영
-
-## CI/CD 설정
+### CI/CD Pipeline설정
 각 구현체들은 각자의 source repository 에 구성되었고, 사용한 CI/CD 플랫폼은 Azure를 사용하였으며, pipeline build script 는 각 프로젝트 폴더 이하에 deployment.yml, service.yml 에 포함되었다
 
-
-• CI 설정
+```
+1.CI 설정
+```
 ![CI 설정](https://user-images.githubusercontent.com/66051393/105149096-827cfe00-5b46-11eb-8890-d7d5e13b8f54.png)
 
 
-
-• CD 설정
+```
+2.CD 설정
+```
 ![CD 설정](https://user-images.githubusercontent.com/66051393/105149254-b0fad900-5b46-11eb-9d55-6c3074ddd1ab.png)
 
-
-• 신규 구현체(coupon) 설정
+```
+신규 구현체(coupon) 설정
+```
 ![coupon 설정](https://user-images.githubusercontent.com/66051393/105149284-b821e700-5b46-11eb-984c-f532eb8de37b.png)
 
 
-
-• 서비스정상기동 확인
+```
+서비스정상기동 확인
+```
 ![서비스기동 확인](https://user-images.githubusercontent.com/66051393/105149346-ca038a00-5b46-11eb-88a7-0a173e92deba.png)
 
 
 
-## 동기식 호출 / 서킷 브레이킹 / 장애격리
-
+### 동기식 호출 / 서킷 브레이킹 / 장애격리
 
 서킷 브레이킹 프레임워크의 선택: Spring FeignClient + Hystrix 옵션을 사용하여 구현함
 시나리오는 매칭요청(match)-->결제(payment) 시의 연결을 RESTful Request/Response 로 연동하여 구현이 되어있고, 결제 요청이 과도할 경우 CB 를 통하여 장애격리.
 
-
-1. Hystrix 를 설정:  요청처리 쓰레드에서 처리시간이 680 밀리가 넘어서기 시작하여 어느정도 유지되면 CB 회로가 닫히도록 (요청을 빠르게 실패처리, 차단) 설정
-
-• application.yml
-<img width="677" alt="01 화면증적" src="https://user-images.githubusercontent.com/66051393/105186079-abb48300-5b74-11eb-88a8-676ee8676c10.png">
-
-
-2. 피호출 서비스(결제:payment) 의 임의 부하 처리 : 400 밀리에서 증감 300 밀리 증감이 발생하도록 설정
-
-• (payment) 결제이력.java (Entity)
-<img width="763" alt="02 화면증적" src="https://user-images.githubusercontent.com/66051393/105187317-fd114200-5b75-11eb-8cb8-76d545906df0.png">
-
-
-3. 부하테스터 siege 툴을 통한 서킷 브레이커 동작 확인:
- - 동시사용자 100명
- - 60초 동안 실시
 ```
- - siege -c100 -t60S -r5 -v --content-type "application/json" 'http://match:8080/matches POST {"id": 600, "price":1000, "status": "matchRequest"}' 
+1.Hystrix 를 설정:  요청처리 쓰레드에서 처리시간이 680 밀리가 넘어서기 시작하여 어느정도 유지되면 CB 회로가 닫히도록 (요청을 빠르게 실패처리, 차단) 설정
+ Match 구현체의 application.yml을 hystrix 라이브러리 추가
 ```
-<img width="635" alt="03 화면증적" src="https://user-images.githubusercontent.com/66051393/105108628-ffd05080-5afd-11eb-826d-66a7b252c09a.png">
+![서비스기동 확인](https://user-images.githubusercontent.com/66051393/105186079-abb48300-5b74-11eb-88a8-676ee8676c10.png)
 
-서킷브레이크가 발생하지 않아 아래와 같이 여러 조건으로 부하테스트를 진행하였으나, 500 에러를 발견할 수 없었음
+```
+2.피호출 서비스(결제:payment) 의 임의 부하 처리 : 400 밀리에서 증감 300 밀리 증감이 발생하도록 설정
+ Payment 구현체 Payment.java (Entity)
+```
+![피호출화면증적](https://user-images.githubusercontent.com/66051393/105187317-fd114200-5b75-11eb-8cb8-76d545906df0.png)
+
+
+3.부하테스터 siege 툴을 통한 서킷 브레이커 동작 확인
+ - 동시사용자 100명 / 60초 동안 부하 발생
+``` 
+ siege -c100 -t60S -r5 -v --content-type "application/json" 'http://match:8080/matches POST {"id": 600, "price":1000, "status": "matchRequest"}' 
+``` 
+![03 화면증적](https://user-images.githubusercontent.com/66051393/105108628-ffd05080-5afd-11eb-826d-66a7b252c09a.png)
+
+
+서킷브레이크가 발생하지 않아 아래와 같이 여러 조건으로 추가 부하테스트를 진행하였으나, 500 에러를 발견할 수 없었음
 
 ```
  - siege -c255 -t1M -r5 -v --content-type "application/json" 'http://match:8080/matches POST {"id": 600, "price":1000, "status": "matchRequest"}' 
@@ -748,106 +749,110 @@ http POST http://visit:8080/visits id=9000 price=1000 status=matchRequest
 ```
 
 
-## 오토스케일 아웃
+### 오토스케일 아웃
 
 앞서 CB 는 시스템을 안정되게 운영할 수 있게 해줬지만 사용자의 요청을 100% 받아들여주지 못했기 때문에 이에 대한 보완책으로 자동화된 확장 기능을 적용하고자 한다.
 visit 구현체에 대한 replica 를 동적으로 늘려주도록 HPA 를 설정한다. 설정은 CPU 사용량이 10프로를 넘어서면 replica 를 10개까지 늘려준다:
 
+```
 kubectl autoscale deploy visit --min=1 --max=10 --cpu-percent=10
+```
+![오토스케일화면증적](https://user-images.githubusercontent.com/66051393/105187684-685b1400-5b76-11eb-9e77-31167c4d0521.png)
 
-<img width="562" alt="01 화면증적" src="https://user-images.githubusercontent.com/66051393/105187684-685b1400-5b76-11eb-9e77-31167c4d0521.png">
-
-
+```
 kubectl exec -it pod siege -- /bin/bash
 siege -c20 -t120S -v http://visit:8080/visits/600
+```
+![siege부하발생_화면증적](https://user-images.githubusercontent.com/66051393/105187844-96d8ef00-5b76-11eb-996e-04236a1677f6.png)
 
-<img width="655" alt="02 siege부하발생_화면증적" src="https://user-images.githubusercontent.com/66051393/105187844-96d8ef00-5b76-11eb-996e-04236a1677f6.png">
 
-
+```
 부하에 따라 visit pod의 cpu 사용률이 증가했고, Pod Replica 수가 증가하는 것을 확인할 수 있었음
+```
+![화면증적_스케일아웃적용](https://user-images.githubusercontent.com/66051393/105187925-ace6af80-5b76-11eb-926d-9f71a328bd4f.png)
 
-<img width="834" alt="02 화면증적_스케일아웃적용" src="https://user-images.githubusercontent.com/66051393/105187925-ace6af80-5b76-11eb-926d-9f71a328bd4f.png">
 
 
-
-## Persistence Volume
+### Persistence Volume
 
 visit 컨테이너를 마이크로서비스로 배포하면서 영속성 있는 저장장치(Persistent Volume)를 적용함
 
-• PVC 설정 확인
-
+```
+PVC 설정 확인
 kubectl describe pvc azure-pvc
+```
+![PVC설정후_describe](https://user-images.githubusercontent.com/66051393/105187979-bf60e900-5b76-11eb-91ed-e7385ecc6c43.png)
 
-<img width="688" alt="01 PVC설정후_describe" src="https://user-images.githubusercontent.com/66051393/105187979-bf60e900-5b76-11eb-91ed-e7385ecc6c43.png">
-
-
-• PVC Volume설정 확인
-
+```
+PVC Volume설정 확인
 mypage 구현체에서 해당 pvc를 volumeMount 하여 사용 (kubectl get deployment mypage -o yaml)
+```
+![PVC Volume](https://user-images.githubusercontent.com/66051393/105042760-f87e5800-5aa7-11eb-9447-2ecb7d427623.png)
 
-<img width="583" alt="02 화면증적" src="https://user-images.githubusercontent.com/66051393/105042760-f87e5800-5aa7-11eb-9447-2ecb7d427623.png">
+```
+mypage pod에 PV Volume설정 확인
+```
+![mypagepod에 PV Volume설정 확인](https://user-images.githubusercontent.com/66051393/105188212-ff27d080-5b76-11eb-8bfe-d9009f0df48f.png)
 
-
-• mypage pod에 PV Volume설정 확인
-
-<img width="588" alt="02 화면증적" src="https://user-images.githubusercontent.com/66051393/105188212-ff27d080-5b76-11eb-8bfe-d9009f0df48f.png">
-
-
-• mypage pod에 접속하여 mount 용량 확인
-
-<img width="482" alt="03 mount_설정확인" src="https://user-images.githubusercontent.com/66051393/105188251-0a7afc00-5b77-11eb-9ee4-38e5ec20e874.png">
-
-
-
-## Self_healing (liveness probe)
-mypage구현체의 deployment.yaml 소스 서비스포트를 8080이 아닌 고의로 8081로 변경하여 재배포한 후 pod 상태 확인
-
-• 정상 서비스포트 확인
-
-<img width="390" alt="01 증적자료_pod yaml확인" src="https://user-images.githubusercontent.com/66051393/105188376-31393280-5b77-11eb-9e94-220936a2dc41.png">
+```
+mypage pod에 접속하여 mount 용량 확인
+```
+![mount_설정확인](https://user-images.githubusercontent.com/66051393/105188251-0a7afc00-5b77-11eb-9ee4-38e5ec20e874.png)
 
 
-• 비정상 상태의 pod 정보 확인
+### Self_healing (liveness probe)
+Mypage구현체의 deployment.yaml 소스 서비스포트를 8080이 아닌 고의로 8081로 변경하여 재배포한 후 pod 상태 확인
 
-<img width="583" alt="02 증적자료_POD비정상으로재기동" src="https://user-images.githubusercontent.com/66051393/105188430-3e562180-5b77-11eb-9c21-5680544bc6e3.png">
+```
+정상 서비스포트 확인
+```
+![증적자료_pod yaml확인](https://user-images.githubusercontent.com/66051393/105188376-31393280-5b77-11eb-9e94-220936a2dc41.png)
+
+
+```
+비정상 상태의 pod 정보 확인
+```
+![증적자료_POD비정상으로재기동](https://user-images.githubusercontent.com/66051393/105188430-3e562180-5b77-11eb-9c21-5680544bc6e3.png)
 
 
 
-## 무정지 재배포
-
+### 무정지 재배포
 먼저 무정지 재배포가 100% 되는 것인지 확인하기 위해서 Autoscaler 이나 CB 설정을 제거함
 seige 로 배포작업 직전에 워크로드를 모니터링 함.
 
-• Match 구현체의 Deployment.yml에서 Readiness 설정 삭제 후 CI/CD를 통해 재배포
+```
+Match 구현체의 Deployment.yml에서 Readiness 설정 삭제 후 CI/CD를 통해 재배포
+```
+![readiness제외후 배포](https://user-images.githubusercontent.com/66051393/105188942-c6d4c200-5b77-11eb-8383-7f5da4150144.png)
 
-<img width="681" alt="01 readiness제외후 배포" src="https://user-images.githubusercontent.com/66051393/105188942-c6d4c200-5b77-11eb-8383-7f5da4150144.png">
+```
+부하측정을 seige로 진입하여 Availability  확인
+```
+![readiness빠진상태에서재배포시_부하](https://user-images.githubusercontent.com/66051393/105189152-03082280-5b78-11eb-89fb-98a759470f34.png)
 
+```
+부하측정을 seige로 진입하여 Availability  확인
+배포기간중 Availability 가 평소 100%에서 70% 대로 떨어지는 것을 확인. 원인은 쿠버네티스가 성급하게 새로 올려진 서비스를 READY 상태로 인식하여 서비스 유입을 진행한 것이기 때문. 이를 막기위해 Readiness Probe 를 설정함
+```
+```
+Match 구현체의 Deployment.yml에 Readiness 설정 추가 후 CI/CD를 통해 재배포
+```
+```
+신규 pod가 생성된 후 -> 기존 pod 삭제 후 -> 신규 pod 활성화되는 것을 확인
+``` 
+![readiness설정후_재배포시_01](https://user-images.githubusercontent.com/66051393/105190112-07810b00-5b79-11eb-9e31-5e55c222dc6e.png)
 
-• 부하측정을 seige로 진입하여 Availability  확인
+![readiness설정후_재배포시_02](https://user-images.githubusercontent.com/66051393/105190148-11a30980-5b79-11eb-8cfc-470830a3955f.png)
 
-<img width="643" alt="01-2 readiness빠진상태에서재배포시_부하" src="https://user-images.githubusercontent.com/66051393/105189152-03082280-5b78-11eb-89fb-98a759470f34.png">
+![readiness설정후_재배포시_02](https://user-images.githubusercontent.com/66051393/105190188-18ca1780-5b79-11eb-83bd-4fd0969c4c41.png)
 
-
-• 부하측정을 seige로 진입하여 Availability  확인
-- 배포기간중 Availability 가 평소 100%에서 70% 대로 떨어지는 것을 확인. 원인은 쿠버네티스가 성급하게 새로 올려진 서비스를 READY 상태로 인식하여 서비스 유입을 진행한 것이기 때문. 이를 막기위해 Readiness Probe 를 설정함
-
-
-• Match 구현체의 Deployment.yml에 Readiness 설정 추가 후 CI/CD를 통해 재배포
-
- - 신규 pod가 생성된 후 -> 기존 pod 삭제 후 -> 신규 pod 활성화되는 것을 확인
+![readiness설정후_재배포시_03](https://user-images.githubusercontent.com/66051393/105190396-4d3dd380-5b79-11eb-8a98-6a1fdb8f2cb8.png)
  
-<img width="516" alt="readiness설정후_재배포시_01" src="https://user-images.githubusercontent.com/66051393/105190112-07810b00-5b79-11eb-9e31-5e55c222dc6e.png">
+```
+동일한 시나리오로 Availability 확인
+```
+![siege부하발행시_100퍼센트가용성확보_01](src="https://user-images.githubusercontent.com/66051393/105190490-647cc100-5b79-11eb-80c1-4c32f0db95ef.png)
 
-<img width="567" alt="readiness설정후_재배포시_02" src="https://user-images.githubusercontent.com/66051393/105190148-11a30980-5b79-11eb-8cfc-470830a3955f.png">
-
-<img width="842" alt="readiness설정후_재배포시_02-1" src="https://user-images.githubusercontent.com/66051393/105190188-18ca1780-5b79-11eb-83bd-4fd0969c4c41.png">
-
-<img width="475" alt="readiness설정후_재배포시_03" src="https://user-images.githubusercontent.com/66051393/105190396-4d3dd380-5b79-11eb-8a98-6a1fdb8f2cb8.png">
- 
-
-• 동일한 시나리오로 Availability 확인
-
-<img width="541" alt="siege부하발행시 100퍼센트가용성확보_01-01" src="https://user-images.githubusercontent.com/66051393/105190490-647cc100-5b79-11eb-80c1-4c32f0db95ef.png">
-
-
+```
 배포기간 동안 Availability 가 변화없기 때문에 무정지 재배포가 성공한 것으로 확인됨.
+```
