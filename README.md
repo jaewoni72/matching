@@ -682,17 +682,17 @@ server:
 
 - Gateway 서비스 실행 상태에서 8088과 8081로 각각 서비스 실행하였을 때 동일하게 match 서비스 실행되었다.
 
-```
+
 http localhost:8088/matches id=50 price=50000 status=matchRequest
 
 ![8088포트](https://user-images.githubusercontent.com/45473909/105039570-0f22b000-5aa4-11eb-9090-45662dcd79d0.PNG)
-```
 
-```
+
+
 http localhost:8081/matches id=51 price=50000 status=matchRequest
 
 ![8081포트](https://user-images.githubusercontent.com/45473909/105039551-0a5dfc00-5aa4-11eb-86c0-c3fc63d5b0f6.PNG)
-```
+
 
 
 # 운영
@@ -700,25 +700,24 @@ http localhost:8081/matches id=51 price=50000 status=matchRequest
 ## CI/CD 설정
 각 구현체들은 각자의 source repository 에 구성되었고, 사용한 CI/CD 플랫폼은 Azure를 사용하였으며, pipeline build script 는 각 프로젝트 폴더 이하에 deployment.yml, service.yml 에 포함되었다
 
-```
+
 • CI 설정
 ![CI 설정](https://user-images.githubusercontent.com/66051393/105149096-827cfe00-5b46-11eb-8890-d7d5e13b8f54.png)
-```
 
-```
+
+
 • CD 설정
 ![CD 설정](https://user-images.githubusercontent.com/66051393/105149254-b0fad900-5b46-11eb-9d55-6c3074ddd1ab.png)
-```
 
-```
+
 • 신규 구현체(coupon) 설정
 ![coupon 설정](https://user-images.githubusercontent.com/66051393/105149284-b821e700-5b46-11eb-984c-f532eb8de37b.png)
-```
 
-```
+
+
 • 서비스정상기동 확인
 ![서비스기동 확인]https://user-images.githubusercontent.com/66051393/105149346-ca038a00-5b46-11eb-88a7-0a173e92deba.png)
-```
+
 
 
 ## 동기식 호출 / 서킷 브레이킹 / 장애격리
