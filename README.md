@@ -114,7 +114,7 @@
 
 ## Event Storming 결과
 - MSAEz 로 모델링한 이벤트스토밍 결과:  http://www.msaez.io/#/storming/OmlGD6ICVSRtR6dYFF7jEteSnoS2/mine/3e0ad62233bdff4bdd9d03458ee27b40
-
+![이벤트스토밍결과](https://user-images.githubusercontent.com/66051393/105207597-0c4eba80-5b8b-11eb-9efe-7892f4985479.png)
 ```
 - 도메인 서열 분리
     - Core Domain:  match, visit, coupon  : 핵심 서비스이며, 연간 Up-time SLA 수준을 99.999% 목표, 배포주기는 match의 경우 1주일 1회 미만, visit의 경우 1개월 1회 미만
