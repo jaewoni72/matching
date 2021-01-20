@@ -729,8 +729,8 @@ http POST http://visit:8081/matches id=9000 price=1000 status=matchRequest
 
 
 ### 오토스케일 아웃
-- 앞서 CB는 시스템을 안정되게 운영할 수 있게 해줬지만 사용자의 요청을 100% 받아들여주지 못했기 때문에 이에 대한 보완책으로 자동화된 확장 기능을 적용함
-  visit 서비스에 대한 replica 를 동적으로 늘려주도록 HPA 를 설정한다. 설정은 CPU 사용량이 10프로를 넘어서면 replica 를 10개까지 늘려준다:
+- 앞서 CB는 시스템을 안정되게 운영할 수 있게 해줬지만 사용자의 요청을 100% 받아들여주지 못했기 때문에 이에 대한 보완책으로 자동화된 확장 기능을 적용함.
+  visit 서비스에 대한 replica 를 동적으로 늘려주도록 HPA 를 설정함. 설정은 CPU 사용량이 10프로를 넘어서면 replica 를 10개까지 늘려줌
 
 ```
 kubectl autoscale deploy visit --min=1 --max=10 --cpu-percent=10
@@ -776,7 +776,7 @@ siege -c20 -t120S -v http://visit:8080/visits/600
 
 
 ### Self_healing (liveness probe)
-- Mypage구현체의 deployment.yaml 소스 서비스포트를 8080이 아닌 고의로 8081로 변경하여 재배포한 후 pod 상태 확인
+- mypage 서비스의 deployment.yaml 소스 서비스포트를 8080이 아닌 고의로 8081로 변경하여 재배포한 후 pod 상태 확인
 
 ```
 # 정상 서비스포트 확인
