@@ -716,7 +716,7 @@ http localhost:8081/matches id=51 price=50000 status=matchRequest
 
 
 • 서비스정상기동 확인
-![서비스기동 확인]https://user-images.githubusercontent.com/66051393/105149346-ca038a00-5b46-11eb-88a7-0a173e92deba.png)
+![서비스기동 확인](https://user-images.githubusercontent.com/66051393/105149346-ca038a00-5b46-11eb-88a7-0a173e92deba.png)
 
 
 
