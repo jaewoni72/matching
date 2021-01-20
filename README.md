@@ -1,12 +1,12 @@
 # matching
-선생님-학생 매칭 서비스
+- 선생님-학생 매칭 서비스
 
-본 예제는 MSA/DDD/Event Storming/EDA 를 포괄하는 분석/설계/구현/운영 전단계를 커버하도록 구성한 예제입니다.
+- 본 예제는 MSA/DDD/Event Storming/EDA 를 포괄하는 분석/설계/구현/운영 전단계를 커버하도록 구성한 예제입니다.
 이는 클라우드 네이티브 애플리케이션의 개발에 요구되는 체크포인트들을 통과하기 위한 예시 답안을 포함합니다.
 - 체크포인트 : https://workflowy.com/s/assessment-check-po/T5YrzcMewfo4J6LW
 
 
-# Table of contents
+### Table of contents
 
 - [예제 ](#---)
   - [서비스 시나리오](#서비스-시나리오)
@@ -27,7 +27,7 @@
     - [무정지 재배포](#무정지-재배포)
 
 
-# 서비스 시나리오
+### 서비스 시나리오
 
 기능적 요구사항
 1. 학생이 금액을 제시하여 매칭 요청을 한다. (선생님을 선택할 수 없다)
@@ -51,7 +51,7 @@
     1. 방문 상태가 변경될 때 마다 매칭관리에서 상태가 변경되어야 한다. corelation
 
 
-# 체크포인트
+### 체크포인트
 ```
 - 분석 설계
 
@@ -113,7 +113,7 @@
 # 분석/설계
 
 ## Event Storming 결과
-MSAEz 로 모델링한 이벤트스토밍 결과:  http://www.msaez.io/#/storming/OmlGD6ICVSRtR6dYFF7jEteSnoS2/mine/3e0ad62233bdff4bdd9d03458ee27b40
+- MSAEz 로 모델링한 이벤트스토밍 결과:  http://www.msaez.io/#/storming/OmlGD6ICVSRtR6dYFF7jEteSnoS2/mine/3e0ad62233bdff4bdd9d03458ee27b40
 
 ```
 - 도메인 서열 분리
@@ -131,21 +131,21 @@ MSAEz 로 모델링한 이벤트스토밍 결과:  http://www.msaez.io/#/stormin
 ```
 
 # 구현
-분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트로 구현하였다. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 8084 이다)
+분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트로 구현하였다. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 8085 이다)
 ```
-cd match
+cd match    // port:8081
 mvn spring-boot:run
 
-cd visit
+cd visit    // port:8082
 mvn spring-boot:run  
 
-cd payment
+cd payment  // port:8083
 mvn spring-boot:run 
 
-cd mypage
+cd mypage  // port:8084
 mvn spring-boot:run  
 
-cd coupon
+cd coupon  // port:8085
 mvn spring-boot:run
 ```
 
@@ -261,7 +261,7 @@ http http://localhost:8085/coupons
 
 ## 동기식 호출과 Fallback 처리
 
-분석단계에서의 조건 중 하나로 접수(match)->결제(payment) 간의 호출은 동기식으로 호출하고자  동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient를 이용하여 호출하도록 한다.
+- 분석단계에서의 조건 중 하나로 접수(match)->결제(payment) 간의 호출은 동기식으로 호출하고자  동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient를 이용하여 호출하도록 한다.
 
 - 결제서비스를 호출하기 위하여 FeignClient 를 이용하여 Service 대행 인터페이스 (Proxy) 를 구현
 
@@ -325,7 +325,7 @@ http POST http://localhost:8081/matches id=2000 price=20000 status=matchRequest 
 cd payment
 mvn spring-boot:run
 
-#match 처리
+# match 처리
 http localhost:8088/matches id=2006 price=20000 status=matchRequest  #Success
 ```
 ![11 payment올리면match됨](https://user-images.githubusercontent.com/66051393/105129536-9f0a3d80-5b28-11eb-95ed-14f9cde24a44.png)
@@ -338,9 +338,8 @@ http localhost:8088/matches id=2006 price=20000 status=matchRequest  #Success
 
 ### 비동기식 호출 
 
-결제가 완료 된 후에 방문(visit) 시스템으로 이를 알려주는 행위는 동기식이 아닌 비동기식으로 처리하며, 방문시스템의 처리를 위하여 매칭요청/결제가 블로킹 되지 않도록 처리한다.
- 
-- 이를 위하여 결제요청이력에 기록을 남긴 후에 곧바로 결제 완료 되었다는 도메인 이벤트를 카프카로 송출한다(Publish)
+- 결제가 완료 된 후에 방문(visit) 시스템으로 이를 알려주는 행위는 동기식이 아닌 비동기식으로 처리하며, 방문시스템의 처리를 위하여 매칭요청/결제가 블로킹 되지 않도록 처리한다.
+  이를 위하여 결제요청이력에 기록을 남긴 후에 곧바로 결제 완료 되었다는 도메인 이벤트를 카프카로 송출한다(Publish)
  
 ```
 package matching;
@@ -366,12 +365,9 @@ public class Payment {
 
 
     }
-
-
 ```
 
-- 방문 서비스에서는 결제완료 이벤트를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다:
-
+- 방문 서비스에서는 결제완료 이벤트를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다
 ```
 package matching;
 
@@ -409,42 +405,34 @@ public class PolicyHandler{
 
         }
     }
-
 ```
 
 
 ### 시간적 디커플링 / 장애격리 
-
-방문(visit) 시스템은 결제(payment) 시스템과 완전히 분리되어있으며 이벤트 수신에 따라 처리되기 때문에, 방문 시스템이 유지보수로 인해 잠시 내려간 상태라도 방문요청(match) 및 결제(payment)하는데에 문제가 없다
-
-
-- 방문 서비스(visit)를 잠시 놓은 후 매칭 요청 처리
+- 방문(visit) 시스템은 결제(payment) 시스템과 완전히 분리되어있으며 이벤트 수신에 따라 처리되기 때문에, 방문 시스템이 유지보수로 인해 잠시 내려간 상태라도 방문요청(match) 및 결제(payment)하는데에 문제가 없다
 ```
-<img width="960" alt="시간적티커플링_visit서비스내린_화면" src="https://user-images.githubusercontent.com/66051393/105129722-07591f00-5b29-11eb-9517-4165255121c1.png">
-
-
-- 방문 서비스 다시 가동
+# 방문 서비스(visit)를 잠시 놓은 후 매칭 요청 처리
 ```
+![11 시간적티커플링_visit서비스내린_화면](https://user-images.githubusercontent.com/66051393/105129722-07591f00-5b29-11eb-9517-4165255121c1.png)
 
 ```
+# 방문 서비스 다시 가동
 cd visit
 mvn spring-boot:run
-
-- 가동 전/후의 방문상태 확인
 ```
-
-### 신규 접수된 매칭요청건에 대해 선생님과 방문일자 매칭
 ```
+# 가동 전/후의 방문상태 확인
+```
+```
+# 신규 접수된 매칭요청건에 대해 선생님과 방문일자 매칭
 http POST http://localhost:8082/visits matchId=3000 teacher=Smith visitDate=20210101 
 http localhost:8082/visits     
 ```
-
-<img width="704" alt="시간적티커플링_visit구현과실행_2" src="https://user-images.githubusercontent.com/66051393/105130890-31abdc00-5b2b-11eb-8273-167c4f72c599.png">
+![11 시간적티커플링_visit구현과실행_2](https://user-images.githubusercontent.com/66051393/105130890-31abdc00-5b2b-11eb-8273-167c4f72c599.png)
 
 
 ### SAGA / Corelation
-
-방문(visit) 시스템에서 상태가 방문확정 또는 방문취소로 변경되면 매치(match) 시스템 원천데이터의 상태(status) 정보가 update된다.  
+- 방문(visit) 시스템에서 상태가 방문확정 또는 방문취소로 변경되면 매치(match) 시스템 원천데이터의 상태(status) 정보가 update된다.  
 
 ```
 # mypage > PolicyHandler.java
@@ -481,13 +469,11 @@ http localhost:8082/visits
           });
       }
   }
-
 ```
 
 
 ### CQRS
-
-매칭 상태가 변경될 때 마다 mypage에서 event를 수신하여 mypage의 매칭상태를 조회하도록 view를 구현하였다.   
+- 매칭 상태가 변경될 때 마다 mypage에서 event를 수신하여 mypage의 매칭상태를 조회하도록 view를 구현하였다.   
 
 ```
 # mypage > PolicyHandler.java
@@ -567,26 +553,27 @@ public void wheneverMatchCanceled_(@Payload MatchCanceled matchCanceled){
 }
     
 ```
-- mypage의 view로 조회
-
-<img width="630" alt="CQRS_mypage화면" src="https://user-images.githubusercontent.com/66051393/105131926-44271500-5b2d-11eb-8d5f-f522ee20e8a8.png">
+```
+# mypage의 view로 조회
+```
+![CQRS_mypage화면](https://user-images.githubusercontent.com/66051393/105131926-44271500-5b2d-11eb-8d5f-f522ee20e8a8.png)
 
 
 ### 폴리글랏 퍼시스턴스
+- match 구현체는 다른 서비스와 구별을 위해 별도 hsqldb를 사용 하였다. 이를 위해 match내 pom.xml에 dependency를 h2database에서 hsqldb로 변경함
 
-match 구현체는 다른 서비스와 구별을 위해 별도 hsqldb를 사용 하였다. 이를 위해 match내 pom.xml에 dependency를 h2database에서 hsqldb로 변경 하였다.
-
-#match의 pom.xml dependency를 수정하여 DB변경
-
+```
+# match의 pom.xml dependency를 수정하여 DB변경
+```
 ![폴리글랏퍼시스턴스](https://user-images.githubusercontent.com/66051393/105132458-4b9aee00-5b2e-11eb-9c9d-32161822fb43.png)
 
-
-- match 구현체 정상적으로 처리되는 것을 확인함
+```
+# match 구현체 정상적으로 처리되는 것을 확인
+```
 ![폴리글랏퍼시스턴스_정상화면](https://user-images.githubusercontent.com/66051393/105132515-666d6280-5b2e-11eb-8dc5-07692f14a9ea.png)
 
 
 ### Gateway
-
 - Gateway 구현체의 Application.yml 설정
 ```
 server:
@@ -673,15 +660,12 @@ server:
   port: 8080
 ```
 
-
 - Gateway 구현체의 Application.yml 설정  
-  Gateway 서비스 실행 상태에서 8088과 8081로 각각 서비스 실행하였을 때 동일하게 match 서비스 실행되었다.
+  Gateway 서비스 실행 상태에서 match와 visit 서비스가 정상적으로 실행됨
 ```
-
 http POST http://match:8080/matches id=9000 price=1000 status=matchRequest
-http POST http://visit:8080/visits id=9000 price=1000 status=matchRequest
+http POST http://visit:8081/matches id=9000 price=1000 status=matchRequest
 ```
-
 ![매칭요청/방문확정](https://user-images.githubusercontent.com/66051393/105153182-7cd5e700-5b4b-11eb-9c21-246045d62f92.png)
 
 
