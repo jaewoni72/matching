@@ -125,7 +125,7 @@
 
 ## 헥사고날 아키텍처 다이어그램 도출
     
-![image](https://user-images.githubusercontent.com/45473909/105029093-3c1b9680-5a95-11eb-812d-b4b634e5fcec.png)
+<img width="838" alt="핵사고날아키텍쳐" src="https://user-images.githubusercontent.com/66051393/105128068-92d0b100-5b25-11eb-96b6-ecb387df68e4.png">
 
   - Chris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
   - 호출관계에서 PubSub 과 Req/Res 를 구분함
@@ -150,6 +150,9 @@ cd mypage
 mvn spring-boot:run  
 ```
 
+cd coupon
+mvn spring-boot:run  
+``.
 
 ## DDD 의 적용
 
@@ -237,24 +240,31 @@ public interface MatchRepository extends PagingAndSortingRepository<Match, Long>
 - 적용 후 REST API 의 테스트
 ```
 # match 서비스의 접수처리
-http localhost:8088/matches id=5000 price=50000 status=matchRequest
+http localhost:8081/matches id=1000 price=10000 status=matchRequest
 ```
-![1 match에서명령어날림](https://user-images.githubusercontent.com/45473909/105010823-898d0900-5a7f-11eb-82b3-ab7163311364.PNG)
+![1 match에서명령어날림](https://user-images.githubusercontent.com/66051393/105128218-efcc6700-5b25-11eb-8771-757bd2a43c91.png)
 ```
 # match 서비스의 접수상태확인
-http localhost:8088/matches/5000
+http localhost:8081/matches/1000
 ```
-![2 match테이블에쌓임](https://user-images.githubusercontent.com/45473909/105010828-8b56cc80-5a7f-11eb-8a8e-9a96984d6ab6.PNG)
+![2 match테이블에쌓임](https://user-images.githubusercontent.com/66051393/105128422-5baecf80-5b26-11eb-8303-ce5165a0c5c5.png)
 ```
 # payment 서비스의 상태확인
-http localhost:8088/payments/5000
+http localhost:8083/payments/10000
 ```
-![3 payment에서match에서날린데이터확인](https://user-images.githubusercontent.com/45473909/105011427-48e1bf80-5a80-11eb-9c95-e3d2e760e931.PNG)
+![3 payment에서match에서날린데이터확인](https://user-images.githubusercontent.com/66051393/105128518-86008d00-5b26-11eb-821e-122c5ebd8d8b.png)
 ```
 # match 서비스에 대한 visit 응답
-http POST localhost:8088/visits matchId=5000 teacher=TEACHER visitDate=21/01/21
+http POST localhost:8082/visits matchId=1000 teacher=TEACHER visitDate=21/01/21
 ```
-![6 visit에서선생님방문계획작성](https://user-images.githubusercontent.com/45473909/105011436-4aab8300-5a80-11eb-8d3e-5fbe98a20668.PNG)
+![4 visit에서선생님방문계획작성](https://user-images.githubusercontent.com/66051393/105128586-a6304c00-5b26-11eb-81de-9348f27d110b.png)
+```
+# coupon 서비스의 상태확인
+http POST localhost:8085/coupons matchId=
+```
+![5 coupon테이블에쌓임](https://user-images.githubusercontent.com/66051393/105128850-38d0eb00-5b27-11eb-98e9-6ff9506bcc2a.png)
+
+
 
 
 
