@@ -125,7 +125,7 @@
 
 ## 헥사고날 아키텍처 다이어그램 도출
     
-<img width="838" alt="핵사고날아키텍쳐" src="https://user-images.githubusercontent.com/66051393/105128068-92d0b100-5b25-11eb-96b6-ecb387df68e4.png">
+<img width="463" alt="핵사고날아키텍쳐" src="https://user-images.githubusercontent.com/66051393/105129090-aa109e00-5b27-11eb-84e6-124571b6a187.png">
 
   - Chris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
   - 호출관계에서 PubSub 과 Req/Res 를 구분함
@@ -148,11 +148,10 @@ mvn spring-boot:run
 
 cd mypage
 mvn spring-boot:run  
-```
 
 cd coupon
-mvn spring-boot:run  
-``.
+mvn spring-boot:run
+```
 
 ## DDD 의 적용
 
@@ -326,9 +325,9 @@ public interface PaymentService {
 # 결제 (payment) 서비스를 잠시 내려놓음 (ctrl+c)
 
 # 접수처리
-http localhost:8088/matches id=5005 price=50000 status=matchRequest   #Fail
+http POST http://localhost:8081/matches id=2000 price=20000 status=matchRequest   #Fail
 ```
-![11 payment내리면match안됨](https://user-images.githubusercontent.com/45473909/105013488-a7a83880-5a82-11eb-9417-92d92668b879.PNG)
+![11 payment내리면match안됨](https://user-images.githubusercontent.com/66051393/105129385-4aff5900-5b28-11eb-9b0a-9cead946ab22.png)
 ```
 
 # payment서비스 재기동
@@ -336,9 +335,9 @@ cd payment
 mvn spring-boot:run
 
 #match 처리
-http localhost:8088/matches id=5006 price=50000 status=matchRequest  #Success
+http localhost:8088/matches id=2006 price=20000 status=matchRequest  #Success
 ```
-![11 payment올리면match됨](https://user-images.githubusercontent.com/45473909/105013494-a8d96580-5a82-11eb-95de-73a47f072920.PNG)
+![11 payment올리면match됨](https://user-images.githubusercontent.com/66051393/105129536-9f0a3d80-5b28-11eb-95ed-14f9cde24a44.png)
 
 - 또한 과도한 요청시에 서비스 장애가 도미노 처럼 벌어질 수 있다. (서킷브레이커, 폴백 처리는 운영단계에서 설명한다.)
 
@@ -430,16 +429,8 @@ public class PolicyHandler{
 
 - 방문 서비스(visit)를 잠시 놓은 후 매칭 요청 처리
 ```
-# 매칭요청 처리
-http POST http://localhost:8081/matches id=101 price=5000 status=matchRequest   #Success
-```
-![image](https://user-images.githubusercontent.com/75401910/105030156-bd275d80-5a96-11eb-87d0-7c16955c76ff.PNG)
+<img width="960" alt="시간적티커플링_visit서비스내린_화면" src="https://user-images.githubusercontent.com/66051393/105129722-07591f00-5b29-11eb-9517-4165255121c1.png">
 
-- 결제서비스가 정상적으로 조회되었는지 확인
-```
-http http://localhost:8083/payments   #Success
-```
-![image](https://user-images.githubusercontent.com/75401933/105035459-5efe7880-5a9e-11eb-9e60-d824d2f1a4cc.png)
 
 - 방문 서비스 다시 가동
 ```
@@ -450,7 +441,7 @@ mvn spring-boot:run
 - 가동 전/후의 방문상태 확인
 ```
 # 신규 접수된 매칭요청건에 대해 선생님과 방문일자 매칭
-http POST http://localhost:8082/visits matchId=101 teacher=Smith visitDate=20210101 
+http POST http://localhost:8082/visits matchId=201 teacher=Smith visitDate=20210101 
 http localhost:8082/visits     
 ```
 ![image](https://user-images.githubusercontent.com/75401933/105036115-65412480-5a9f-11eb-8cf8-ea4e46376a46.png)
