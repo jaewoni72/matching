@@ -750,71 +750,69 @@ siege -c20 -t120S -v http://visit:8080/visits/600
 
 
 ### Persistence Volume
-
-visit 컨테이너를 마이크로서비스로 배포하면서 영속성 있는 저장장치(Persistent Volume)를 적용함
+- visit 서비스를 마이크로서비스로 배포하면서 영속성 있는 저장장치(Persistent Volume)를 적용함
 
 ```
-PVC 설정 확인
-kubectl describe pvc azure-pvc
+# PVC 설정 확인
+  kubectl describe pvc azure-pvc
 ```
 ![PVC설정후_describe](https://user-images.githubusercontent.com/66051393/105187979-bf60e900-5b76-11eb-91ed-e7385ecc6c43.png)
 
 ```
-PVC Volume설정 확인
-mypage 구현체에서 해당 pvc를 volumeMount 하여 사용 (kubectl get deployment mypage -o yaml)
+# PVC Volume설정 확인
+  mypage 구현체에서 해당 pvc를 volumeMount 하여 사용 (kubectl get deployment mypage -o yaml)
 ```
 ![PVC Volume](https://user-images.githubusercontent.com/66051393/105042760-f87e5800-5aa7-11eb-9447-2ecb7d427623.png)
 
 ```
-mypage pod에 PV Volume설정 확인
+# mypage pod에 PV Volume설정 확인
 ```
 ![mypagepod에 PV Volume설정 확인](https://user-images.githubusercontent.com/66051393/105188212-ff27d080-5b76-11eb-8bfe-d9009f0df48f.png)
 
 ```
-mypage pod에 접속하여 mount 용량 확인
+# mypage pod에 접속하여 mount 용량 확인
 ```
 ![mount_설정확인](https://user-images.githubusercontent.com/66051393/105188251-0a7afc00-5b77-11eb-9ee4-38e5ec20e874.png)
 
 
 ### Self_healing (liveness probe)
-Mypage구현체의 deployment.yaml 소스 서비스포트를 8080이 아닌 고의로 8081로 변경하여 재배포한 후 pod 상태 확인
+- Mypage구현체의 deployment.yaml 소스 서비스포트를 8080이 아닌 고의로 8081로 변경하여 재배포한 후 pod 상태 확인
 
 ```
-정상 서비스포트 확인
+# 정상 서비스포트 확인
 ```
 ![증적자료_pod yaml확인](https://user-images.githubusercontent.com/66051393/105188376-31393280-5b77-11eb-9e94-220936a2dc41.png)
 
-
 ```
-비정상 상태의 pod 정보 확인
+# 비정상 상태의 pod 정보 확인
 ```
 ![증적자료_POD비정상으로재기동](https://user-images.githubusercontent.com/66051393/105188430-3e562180-5b77-11eb-9c21-5680544bc6e3.png)
 
 
-
 ### 무정지 재배포
-먼저 무정지 재배포가 100% 되는 것인지 확인하기 위해서 Autoscaler 이나 CB 설정을 제거함
+- 먼저 무정지 재배포가 100% 되는 것인지 확인하기 위해서 Autoscaler 이나 CB 설정을 제거함
 seige 로 배포작업 직전에 워크로드를 모니터링 함.
 
 ```
-Match 구현체의 Deployment.yml에서 Readiness 설정 삭제 후 CI/CD를 통해 재배포
+# match 서비스의 Deployment.yml에서 Readiness 설정 삭제 후 CI/CD를 통해 재배포
 ```
 ![readiness제외후 배포](https://user-images.githubusercontent.com/66051393/105188942-c6d4c200-5b77-11eb-8383-7f5da4150144.png)
 
 ```
-부하측정을 seige로 진입하여 Availability  확인
+# 부하측정을 seige로 진입하여 Availability  확인
 ```
 ![readiness빠진상태에서재배포시_부하](https://user-images.githubusercontent.com/66051393/105189152-03082280-5b78-11eb-89fb-98a759470f34.png)
 
 ```
-부하측정을 seige로 진입하여 Availability  확인
-배포기간중 Availability 가 평소 100%에서 70% 대로 떨어지는 것을 확인. 원인은 쿠버네티스가 성급하게 새로 올려진 서비스를 READY 상태로 인식하여 서비스 유입을 진행한 것이기 때문. 이를 막기위해 Readiness Probe 를 설정함
+# 부하측정을 seige로 진입하여 Availability 확인
+  배포기간중 Availability가 평소 100%에서 70%대로 떨어지는 것을 확인. 원인은 쿠버네티스가 성급하게 새로 올려진 서비스를 READY상태로 인식하여 서비스 유입을 진행한 것이기 때문. 
+  이를 막기위해 Readiness Probe 를 설정함
 ```
 ```
-Match 구현체의 Deployment.yml에 Readiness 설정 추가 후 CI/CD를 통해 재배포
+# match 서비스의 Deployment.yml에 Readiness설정 추가 후 CI/CD를 통해 재배포
 ```
 ```
-신규 pod가 생성된 후 -> 기존 pod 삭제 후 -> 신규 pod 활성화되는 것을 확인
+# 신규 pod가 생성된 후 -> 기존 pod 삭제 후 -> 신규 pod 활성화되는 것을 확인
 ``` 
 ![readiness설정후_재배포시_01](https://user-images.githubusercontent.com/66051393/105190112-07810b00-5b79-11eb-9e31-5e55c222dc6e.png)
 
@@ -825,10 +823,10 @@ Match 구현체의 Deployment.yml에 Readiness 설정 추가 후 CI/CD를 통해
 ![readiness설정후_재배포시_03](https://user-images.githubusercontent.com/66051393/105190396-4d3dd380-5b79-11eb-8a98-6a1fdb8f2cb8.png)
  
 ```
-동일한 시나리오로 Availability 확인
+# 동일한 시나리오로 Availability 확인
 ```
 ![siege부하발행시_100퍼센트가용성확보_01](src="https://user-images.githubusercontent.com/66051393/105190490-647cc100-5b79-11eb-80c1-4c32f0db95ef.png)
 
 ```
-배포기간 동안 Availability 가 변화없기 때문에 무정지 재배포가 성공한 것으로 확인됨.
+# 배포기간 동안 Availability 가 변화없기 때문에 무정지 재배포가 성공한 것으로 확인됨.
 ```
