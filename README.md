@@ -453,6 +453,48 @@ http localhost:8082/visits
 ![image](https://user-images.githubusercontent.com/75401933/105036115-65412480-5a9f-11eb-8cf8-ea4e46376a46.png)
 
 
+### SAGA / Corelation
+
+방문(visit) 시스템에서 상태가 방문확정 또는 방문취소로 변경되면 매치(match) 시스템 원천데이터의 상태(status) 정보가 update된다.  
+
+```
+# mypage > PolicyHandler.java
+
+  @StreamListener(KafkaProcessor.INPUT)
+  public void wheneverVisitAssigned_(@Payload VisitAssigned visitAssigned){
+
+      if(visitAssigned.isMe()){
+          System.out.println("##### listener wheneverVisitAssigned  : " + visitAssigned.toJson());
+
+          //방문 assign 이벤트를 수신하였을 때 해당 ID를 찾아서 상태값을 visitAssigned로 변경
+          MatchRepository.findById(visitAssigned.getMatchId()).ifPresent(Match ->{
+              System.out.println("##### wheneverVisitAssigned_MatchRepository.findById : exist" );
+
+              Match.setStatus(visitAssigned.getEventType()); //상태값은 모두 이벤트타입으로 셋팅함
+              MatchRepository.save(Match);
+          });
+
+      }
+  }
+
+
+  @StreamListener(KafkaProcessor.INPUT)
+  public void wheneverVisitCanceled_(@Payload VisitCanceled visitCanceled) {
+
+      if (visitCanceled.isMe()) {
+          System.out.println("##### listener  : " + visitCanceled.toJson());
+
+          //방문취소 이벤트를 수신하였을 때 해당 ID를 찾아서 상태값을 visitCanceled로 변경
+          MatchRepository.findById(visitCanceled.getMatchId()).ifPresent(Match -> {
+              System.out.println("##### wheneverVisitCanceled_MatchRepository.findById : exist");
+              Match.setStatus(visitCanceled.getEventType());
+              MatchRepository.save(Match);
+          });
+      }
+  }
+
+```
+
 
 ### CQRS
 
