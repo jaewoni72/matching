@@ -727,14 +727,16 @@ http POST http://visit:8080/visits id=9000 price=1000 status=matchRequest
 시나리오는 매칭요청(match)-->결제(payment) 시의 연결을 RESTful Request/Response 로 연동하여 구현이 되어있고, 결제 요청이 과도할 경우 CB 를 통하여 장애격리.
 
 
-1. Hystrix 를 설정:  요청처리 쓰레드에서 처리시간이 600 밀리가 넘어서기 시작하여 어느정도 유지되면 CB 회로가 닫히도록 (요청을 빠르게 실패처리, 차단) 설정
-- application.yml
-<img width="766" alt="01 화면증적" src="https://user-images.githubusercontent.com/66051393/105108052-c64b1580-5afc-11eb-88a8-b37a01a87896.png">
+1. Hystrix 를 설정:  요청처리 쓰레드에서 처리시간이 680 밀리가 넘어서기 시작하여 어느정도 유지되면 CB 회로가 닫히도록 (요청을 빠르게 실패처리, 차단) 설정
+
+• application.yml
+<img width="677" alt="01 화면증적" src="https://user-images.githubusercontent.com/66051393/105186079-abb48300-5b74-11eb-88a8-676ee8676c10.png">
 
 
-2. 피호출 서비스(결제:payment) 의 임의 부하 처리 - 400 밀리에서 증감 300 밀리 정도 왔다갔다 하게
-- (payment) 결제이력.java (Entity)
-<img width="763" alt="02 화면증적" src="https://user-images.githubusercontent.com/66051393/105108324-54bf9700-5afd-11eb-8883-f60bbc6c8405.png">
+2. 피호출 서비스(결제:payment) 의 임의 부하 처리 : 400 밀리에서 증감 300 밀리 증감이 발생하도록 설정
+
+• (payment) 결제이력.java (Entity)
+<img width="763" alt="02 화면증적" src="https://user-images.githubusercontent.com/66051393/105187317-fd114200-5b75-11eb-8cb8-76d545906df0.png">
 
 
 3. 부하테스터 siege 툴을 통한 서킷 브레이커 동작 확인:
@@ -757,20 +759,23 @@ http POST http://visit:8080/visits id=9000 price=1000 status=matchRequest
 ## 오토스케일 아웃
 
 앞서 CB 는 시스템을 안정되게 운영할 수 있게 해줬지만 사용자의 요청을 100% 받아들여주지 못했기 때문에 이에 대한 보완책으로 자동화된 확장 기능을 적용하고자 한다.
-
 visit 구현체에 대한 replica 를 동적으로 늘려주도록 HPA 를 설정한다. 설정은 CPU 사용량이 10프로를 넘어서면 replica 를 10개까지 늘려준다:
 
-kubectl autoscale deploy visit --min=1 --max=10 --cpu-percent=15
+kubectl autoscale deploy visit --min=1 --max=10 --cpu-percent=10
 
-<img width="504" alt="01 화면증적" src="https://user-images.githubusercontent.com/66051393/105040263-f8308d80-5aa4-11eb-9686-0afedeaa5a48.png">
+<img width="562" alt="01 화면증적" src="https://user-images.githubusercontent.com/66051393/105187684-685b1400-5b76-11eb-9e77-31167c4d0521.png">
 
 
 kubectl exec -it pod siege -- /bin/bash
 siege -c20 -t120S -v http://visit:8080/visits/600
 
+<img width="655" alt="02 siege부하발생_화면증적" src="https://user-images.githubusercontent.com/66051393/105187844-96d8ef00-5b76-11eb-996e-04236a1677f6.png">
+
+
 부하에 따라 visit pod의 cpu 사용률이 증가했고, Pod Replica 수가 증가하는 것을 확인할 수 있었음
 
-<img width="536" alt="02 화면증적" src="https://user-images.githubusercontent.com/66051393/105040477-3cbc2900-5aa5-11eb-94b8-7f2eb33102fa.png">
+<img width="834" alt="02 화면증적_스케일아웃적용" src="https://user-images.githubusercontent.com/66051393/105187925-ace6af80-5b76-11eb-926d-9f71a328bd4f.png">
+
 
 
 ## Persistence Volume
@@ -781,16 +786,25 @@ visit 컨테이너를 마이크로서비스로 배포하면서 영속성 있는 
 
 kubectl describe pvc azure-pvc
 
-<img width="546" alt="01-1 화면증적(decribe)" src="https://user-images.githubusercontent.com/66051393/105042326-73933e80-5aa7-11eb-8c4f-94b46c811e56.png">
+<img width="688" alt="01 PVC설정후_describe" src="https://user-images.githubusercontent.com/66051393/105187979-bf60e900-5b76-11eb-91ed-e7385ecc6c43.png">
+
 
 • PVC Volume설정 확인
+
 mypage 구현체에서 해당 pvc를 volumeMount 하여 사용 (kubectl get deployment mypage -o yaml)
 
 <img width="583" alt="02 화면증적" src="https://user-images.githubusercontent.com/66051393/105042760-f87e5800-5aa7-11eb-9447-2ecb7d427623.png">
 
+
+• mypage pod에 PV Volume설정 확인
+
+<img width="588" alt="02 화면증적" src="https://user-images.githubusercontent.com/66051393/105188212-ff27d080-5b76-11eb-8bfe-d9009f0df48f.png">
+
+
 • mypage pod에 접속하여 mount 용량 확인
 
-<img width="482" alt="03 mount_설정확인" src="https://user-images.githubusercontent.com/66051393/105042971-41361100-5aa8-11eb-8fa7-65efbe12fb8c.png">
+<img width="482" alt="03 mount_설정확인" src="https://user-images.githubusercontent.com/66051393/105188251-0a7afc00-5b77-11eb-9ee4-38e5ec20e874.png">
+
 
 
 ## Self_healing (liveness probe)
@@ -798,11 +812,13 @@ mypage구현체의 deployment.yaml 소스 서비스포트를 8080이 아닌 고�
 
 • 정상 서비스포트 확인
 
-<img width="557" alt="01 증적자료" src="https://user-images.githubusercontent.com/66051393/105043345-c4effd80-5aa8-11eb-83db-df351905d102.png">
+<img width="390" alt="01 증적자료_pod yaml확인" src="https://user-images.githubusercontent.com/66051393/105188376-31393280-5b77-11eb-9e94-220936a2dc41.png">
+
 
 • 비정상 상태의 pod 정보 확인
 
-<img width="581" alt="03 증적자료_POD비정상으로재기동" src="https://user-images.githubusercontent.com/66051393/105043596-0ed8e380-5aa9-11eb-9c46-dabe5736df9c.png">
+<img width="583" alt="02 증적자료_POD비정상으로재기동" src="https://user-images.githubusercontent.com/66051393/105188430-3e562180-5b77-11eb-9c21-5680544bc6e3.png">
+
 
 
 ## 무정지 재배포
@@ -810,17 +826,36 @@ mypage구현체의 deployment.yaml 소스 서비스포트를 8080이 아닌 고�
 먼저 무정지 재배포가 100% 되는 것인지 확인하기 위해서 Autoscaler 이나 CB 설정을 제거함
 seige 로 배포작업 직전에 워크로드를 모니터링 함.
 
-```
-siege -c10 -t30S -r10 --content-type "application/json" 'http://match:8080/matches POST {"id": "101"}'
+• Match 구현체의 Deployment.yml에서 Readiness 설정 삭제 후 CI/CD를 통해 재배포
 
-```
-1. CI/CD를 통해 새로운 배포 시작
-1. seige 의 화면으로 넘어가서 Availability 가 100% 미만으로 떨어졌는지 확인
-![image](https://user-images.githubusercontent.com/75401933/105041017-d7b50300-5aa5-11eb-90dd-5031cd846d81.png)
+<img width="681" alt="01 readiness제외후 배포" src="https://user-images.githubusercontent.com/66051393/105188942-c6d4c200-5b77-11eb-8383-7f5da4150144.png">
 
-1. 배포기간중 Availability 가 평소 100%에서 80% 대로 떨어지는 것을 확인. 원인은 쿠버네티스가 성급하게 새로 올려진 서비스를 READY 상태로 인식하여 서비스 유입을 진행한 것이기 때문. 이를 막기위해 Readiness Probe 를 설정함:
-1. CI/CD를 통해 새로운 배포 시작
-1. 동일한 시나리오로 재배포 한 후 Availability 확인:
-![image](https://user-images.githubusercontent.com/75401933/105041119-f4e9d180-5aa5-11eb-9afb-e7af9c06fcce.png)
+
+• 부하측정을 seige로 진입하여 Availability  확인
+
+<img width="643" alt="01-2 readiness빠진상태에서재배포시_부하" src="https://user-images.githubusercontent.com/66051393/105189152-03082280-5b78-11eb-89fb-98a759470f34.png">
+
+
+• 부하측정을 seige로 진입하여 Availability  확인
+- 배포기간중 Availability 가 평소 100%에서 70% 대로 떨어지는 것을 확인. 원인은 쿠버네티스가 성급하게 새로 올려진 서비스를 READY 상태로 인식하여 서비스 유입을 진행한 것이기 때문. 이를 막기위해 Readiness Probe 를 설정함
+
+
+• Match 구현체의 Deployment.yml에 Readiness 설정 추가 후 CI/CD를 통해 재배포
+
+ - 신규 pod가 생성된 후 -> 기존 pod 삭제 후 -> 신규 pod 활성화되는 것을 확인
+ 
+<img width="516" alt="readiness설정후_재배포시_01" src="https://user-images.githubusercontent.com/66051393/105190112-07810b00-5b79-11eb-9e31-5e55c222dc6e.png">
+
+<img width="567" alt="readiness설정후_재배포시_02" src="https://user-images.githubusercontent.com/66051393/105190148-11a30980-5b79-11eb-8cfc-470830a3955f.png">
+
+<img width="842" alt="readiness설정후_재배포시_02-1" src="https://user-images.githubusercontent.com/66051393/105190188-18ca1780-5b79-11eb-83bd-4fd0969c4c41.png">
+
+<img width="475" alt="readiness설정후_재배포시_03" src="https://user-images.githubusercontent.com/66051393/105190396-4d3dd380-5b79-11eb-8a98-6a1fdb8f2cb8.png">
+ 
+
+• 동일한 시나리오로 Availability 확인
+
+<img width="541" alt="siege부하발행시 100퍼센트가용성확보_01-01" src="https://user-images.githubusercontent.com/66051393/105190490-647cc100-5b79-11eb-80c1-4c32f0db95ef.png">
+
 
 배포기간 동안 Availability 가 변화없기 때문에 무정지 재배포가 성공한 것으로 확인됨.
