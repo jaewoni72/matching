@@ -431,11 +431,15 @@ mvn spring-boot:run
 ```
 ```
 # 신규 접수된 매칭요청건에 대해 선생님과 방문일자 매칭
-http POST http://localhost:8082/visits matchId=1000 teacher=kim visitDate=20210101 
-http localhost:8082/visits     
+http POST http://localhost:8082/visits matchId=1000 teacher=kim visitDate=20210101
 ```
-![11 시간적티커플링_visit구현과실행_2](https://user-images.githubusercontent.com/66051393/105278995-fd4b2500-5be9-11eb-8118-c8c6a9d2f4c8.png)
+![11 시간적티커플링_visit구현과실행_2](https://user-images.githubusercontent.com/66051393/105279293-9b3eef80-5bea-11eb-92ff-1ca8814225fe.png)
 
+```
+# 신규 접수된 매칭확정상태 확인
+http http://localhost:8082/visits/3000
+```
+![12 매칭확정상태_확인](https://user-images.githubusercontent.com/66051393/105279534-1a342800-5beb-11eb-93e6-5e524dfed776.png)
 
 ### SAGA / Corelation
 - 방문(visit) 시스템에서 상태가 방문확정 또는 방문취소로 변경되면 매치(match) 시스템 원천데이터의 상태(status) 정보가 update된다.  
