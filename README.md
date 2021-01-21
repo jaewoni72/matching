@@ -431,10 +431,10 @@ mvn spring-boot:run
 ```
 ```
 # 신규 접수된 매칭요청건에 대해 선생님과 방문일자 매칭
-http POST http://localhost:8082/visits matchId=3000 teacher=Smith visitDate=20210101 
+http POST http://localhost:8082/visits matchId=1000 teacher=kim visitDate=20210101 
 http localhost:8082/visits     
 ```
-![11 시간적티커플링_visit구현과실행_2](https://user-images.githubusercontent.com/66051393/105130890-31abdc00-5b2b-11eb-8273-167c4f72c599.png)
+![11 시간적티커플링_visit구현과실행_2](https://user-images.githubusercontent.com/66051393/105278995-fd4b2500-5be9-11eb-8118-c8c6a9d2f4c8.png)
 
 
 ### SAGA / Corelation
