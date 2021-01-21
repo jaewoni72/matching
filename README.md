@@ -255,8 +255,7 @@ http POST http://localhost:8082/visits matchId=1000 teacher=kim visitDate=202101
 # coupon 서비스의 상태확인
 http http://localhost:8085/coupons
 ```
-![5 coupon테이블에쌓임](https://user-images.githubusercontent.com/66051393/105128850-38d0eb00-5b27-11eb-98e9-6ff9506bcc2a.png)
-
+![5 coupon테이블에쌓임](https://user-images.githubusercontent.com/66051393/105257447-27411f00-5bcb-11eb-9932-8a7325737aff.png)
 
 
 ## 동기식 호출과 Fallback 처리
