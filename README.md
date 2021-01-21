@@ -256,6 +256,11 @@ http POST http://localhost:8082/visits matchId=1000 teacher=kim visitDate=202101
 http http://localhost:8085/coupons
 ```
 ![5 coupon테이블에쌓임](https://user-images.githubusercontent.com/66051393/105257447-27411f00-5bcb-11eb-9932-8a7325737aff.png)
+```
+# 진행상태에 대한 확인
+http http://localhost:8084/myPages
+```
+![5 mypage테이블에쌓임](https://user-images.githubusercontent.com/66051393/105257718-b3534680-5bcb-11eb-9b04-fc63123f5359.png)
 
 
 ## 동기식 호출과 Fallback 처리
